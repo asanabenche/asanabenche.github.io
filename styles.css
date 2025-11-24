@@ -1,0 +1,81 @@
+/* Remove default margin */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: auto;
+    /* Allow scrolling */
+}
+
+.bg-wrapper {
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+    line-height: 0;
+}
+
+.overlay-link {
+    position: absolute;
+    height: auto;
+    transform: translate(-50%, -50%);
+    transition: transform 0.2s;
+}
+
+.skip-btn {
+    top: 22%;
+    left: 87.5%;
+    width: 12.2%;
+}
+
+.start-stop-btn {
+    /* Initial position - adjust as needed */
+    top: 49.33%;
+    left: 47.45%;
+    width: 8.46%;
+}
+
+.overlay-link:hover {
+    transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+    cursor: pointer;
+}
+
+.overlay-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.background-img {
+    display: block;
+    /* Default fallback */
+    min-width: 100vw;
+    min-height: 100vh;
+}
+
+/* 
+   CASE 1: Viewport is WIDER than the image (Aspect Ratio > 1.26468)
+   - Lock Width to 100vw
+   - Height will scale > 100vh (Vertical Scroll)
+*/
+@media (min-aspect-ratio: 3273/2588) {
+    .background-img {
+        width: 100vw;
+        height: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+/* 
+   CASE 2: Viewport is TALLER than the image (Aspect Ratio < 1.26468)
+   - Lock Height to 100vh
+   - Width will scale > 100vw (Horizontal Scroll)
+*/
+@media (max-aspect-ratio: 3273/2588) {
+    .background-img {
+        width: auto;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+    }
+}
