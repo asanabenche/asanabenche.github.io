@@ -58,7 +58,7 @@ body {
    - Height will scale > 100vh (Vertical Scroll)
 */
 @media (min-aspect-ratio: 3273/2588) {
-    .background-img {
+    .listening-bg {
         width: 100vw;
         height: auto;
         min-width: 0;
@@ -67,12 +67,146 @@ body {
 }
 
 /* 
+   HOME PAGE BACKGROUND SCALING
+   Image Dimensions: 3633 x 2850
+   Aspect Ratio: 3633 / 2850 = 1.2747
+*/
+
+/* 
+   CASE 1: Viewport is WIDER than the image (Aspect Ratio > 1.2747)
+   - Lock Width to 100vw
+   - Height will scale > 100vh (Vertical Scroll)
+*/
+@media (min-aspect-ratio: 3633/2850) {
+    .home-bg {
+        width: 100vw;
+        height: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+/* 
+   CASE 2: Viewport is TALLER than the image (Aspect Ratio < 1.2747)
+   - Lock Height to 100vh
+   - Width will scale > 100vw (Horizontal Scroll)
+*/
+@media (max-aspect-ratio: 3633/2850) {
+    .home-bg {
+        width: auto;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+/* Navigation Buttons Positioning (Initial Guesses) */
+
+.listen-btn {
+    top: 75.45%;
+    left: 14.5%;
+    width: 7.5%;
+}
+
+.shop-btn {
+    top: 62.1%;
+    left: 33.5%;
+    width: 9.5%;
+}
+
+.shows-btn {
+    top: 73%;
+    left: 80%;
+    width: 25%;
+}
+
+.lessons-btn {
+    top: 45.9%;
+    left: 15.4%;
+    width: 10%;
+}
+
+.contact-btn {
+    top: 46.3%;
+    left: 76.3%;
+    width: 9%;
+}
+
+/* 
    CASE 2: Viewport is TALLER than the image (Aspect Ratio < 1.26468)
    - Lock Height to 100vh
    - Width will scale > 100vw (Horizontal Scroll)
 */
 @media (max-aspect-ratio: 3273/2588) {
-    .background-img {
+    .listening-bg {
+        width: auto;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+/* 
+   SHOP PAGE BACKGROUND SCALING
+   Image Dimensions: 3287 x 2650
+   Aspect Ratio: 3287 / 2650 = 1.2403
+*/
+
+@media (min-aspect-ratio: 3287/2650) {
+    .shop-bg {
+        width: 100vw;
+        height: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+@media (max-aspect-ratio: 3287/2650) {
+    .shop-bg {
+        width: auto;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+/* Shop Page Buttons */
+.door-btn {
+    top: 21%;
+    left: 20%;
+    width: 12%;
+    /* Specific hover effect for door */
+    transition: transform 0.5s ease;
+    transform-origin: left center;
+}
+
+.door-btn:hover {
+    transform: translate(-50%, -50%) perspective(1000px) rotateY(-50deg);
+}
+
+.stuff-btn {
+    top: 40%;
+    left: 51.5%;
+    width: 17.2%;
+}
+
+/* 
+   LESSONS PAGE BACKGROUND SCALING
+   Image Dimensions: 3502 x 2769
+   Aspect Ratio: 3502 / 2769 = 1.2647
+*/
+
+@media (min-aspect-ratio: 3502/2769) {
+    .lessons-bg {
+        width: 100vw;
+        height: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+@media (max-aspect-ratio: 3502/2769) {
+    .lessons-bg {
         width: auto;
         height: 100vh;
         min-width: 0;
