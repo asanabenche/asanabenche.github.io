@@ -23,7 +23,7 @@ body {
     /* Allow scrolling */
 }
 
-
+/* --- GLOBAL STYLES --- */
 
 .bg-wrapper {
     position: relative;
@@ -32,34 +32,38 @@ body {
     line-height: 0;
 }
 
-.shop-wrapper {
-    background-color: black;
-}
-
-.overlay-link {
+.overlay-link,
+.overlay-simple {
     position: absolute;
     height: auto;
     transform: translate(-50%, -50%);
     transition: transform 0.2s, filter 0.2s;
 }
 
-.skip-btn {
-    top: 22%;
-    left: 87.5%;
-    width: 12.2%;
-}
-
-.start-stop-btn {
-    /* Initial position - adjust as needed */
-    top: 49.33%;
-    left: 47.45%;
-    width: 8.46%;
-}
-
 .overlay-link:hover {
     transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
     cursor: pointer;
     filter: brightness(1.2);
+}
+
+.overlay-simple:hover {
+    transform: translate(-50%, -50%) scale(1);
+    cursor: pointer;
+    filter: brightness(1.2);
+}
+
+.overlay-bright {
+    position: absolute;
+    height: auto;
+    transform: translate(-50%, -50%);
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.overlay-bright:hover {
+    transform: translate(-50%, -50%) scale(1);
+    cursor: pointer;
+    filter: brightness(1.5);
+    /* Brighter than simple */
 }
 
 .overlay-img {
@@ -75,32 +79,50 @@ body {
     min-height: 100vh;
 }
 
-/* 
-   CASE 1: Viewport is WIDER than the image (Aspect Ratio > 1.26468)
-   - Lock Width to 100vw
-   - Height will scale > 100vh (Vertical Scroll)
-*/
-@media (min-aspect-ratio: 3273/2588) {
-    .listening-bg {
-        width: 100vw;
-        height: auto;
-        min-width: 0;
-        min-height: 0;
+.exit-btn {
+    position: absolute;
+    width: 10%;
+    /* Placeholder size */
+    z-index: 100;
+}
+
+/* Shake Animation */
+@keyframes shake {
+    0% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+
+    20% {
+        transform: translate(-50%, -50%) scale(1.1) rotate(-3deg);
+    }
+
+    40% {
+        transform: translate(-50%, -50%) scale(1.1) rotate(3deg);
+    }
+
+    60% {
+        transform: translate(-50%, -50%) scale(1.1) rotate(-3deg);
+    }
+
+    80% {
+        transform: translate(-50%, -50%) scale(1.1) rotate(3deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
     }
 }
 
-/* 
-   HOME PAGE BACKGROUND SCALING
-   Image Dimensions: 3633 x 2850
-   Aspect Ratio: 3633 / 2850 = 1.2747
-*/
 
-/* 
-   CASE 1: Viewport is WIDER than the image (Aspect Ratio > 1.2747)
-   - Lock Width to 100vw
-   - Height will scale > 100vh (Vertical Scroll)
-*/
-@media (min-aspect-ratio: 3633/2850) {
+/* --- HOME PAGE --- */
+
+.home-wrapper {
+    background-color: black;
+}
+
+/* Background Scaling */
+/* Image Dimensions: 3633 x 2850, Aspect Ratio: 1.2747 */
+@media (min-aspect-ratio: 4314/3391) {
     .home-bg {
         width: 100vw;
         height: auto;
@@ -109,12 +131,7 @@ body {
     }
 }
 
-/* 
-   CASE 2: Viewport is TALLER than the image (Aspect Ratio < 1.2747)
-   - Lock Height to 100vh
-   - Width will scale > 100vw (Horizontal Scroll)
-*/
-@media (max-aspect-ratio: 3633/2850) {
+@media (max-aspect-ratio: 4314/3391) {
     .home-bg {
         width: auto;
         height: 100vh;
@@ -123,103 +140,105 @@ body {
     }
 }
 
-/* Navigation Buttons Positioning (Initial Guesses) */
-
+/* Buttons */
 .listen-btn {
     top: 75.45%;
-    left: 14.5%;
+    left: 15.5%;
     width: 7.5%;
 }
 
 .shop-btn {
-    top: 62.1%;
+    top: 62.6%;
     left: 33.5%;
-    width: 9.5%;
+    width: 9.2%;
 }
 
 .shows-btn {
-    top: 73%;
-    left: 80%;
-    width: 25%;
+    top: 74%;
+    left: 78.8%;
+    width: 22%;
 }
 
 .lessons-btn {
-    top: 45.9%;
-    left: 15.4%;
-    width: 10%;
+    top: 47.3%;
+    left: 16.3%;
+    width: 9.8%;
 }
 
 .contact-btn {
-    top: 46.3%;
-    left: 76.3%;
-    width: 9%;
+    position: absolute;
+    height: auto;
+    transform: translate(-50%, -50%);
+    top: 33.25%;
+    left: 57.05%;
+    width: 11.9%;
+    z-index: 3;
 }
 
-/* 
-   CASE 2: Viewport is TALLER than the image (Aspect Ratio < 1.26468)
-   - Lock Height to 100vh
-   - Width will scale > 100vw (Horizontal Scroll)
-*/
-@media (max-aspect-ratio: 3273/2588) {
-    .listening-bg {
-        width: auto;
-        height: 100vh;
-        min-width: 0;
-        min-height: 0;
-    }
+.watch-btn {
+    top: 52%;
+    left: 64%;
+    width: 8%;
 }
 
-/* 
-   SHOP PAGE BACKGROUND SCALING
-   Image Dimensions: 3287 x 2650
-   Aspect Ratio: 3287 / 2650 = 1.2403
-*/
-
-@media (min-aspect-ratio: 3287/2650) {
-    .shop-bg {
-        width: 100vw;
-        height: auto;
-        min-width: 0;
-        min-height: 0;
-    }
+/* Interactive Elements */
+.shake-on-click {
+    position: absolute;
+    height: auto;
+    transform: translate(-50%, -50%);
+    transition: transform 0.2s;
+    cursor: pointer;
 }
 
-@media (max-aspect-ratio: 3287/2650) {
-    .shop-bg {
-        width: auto;
-        height: 100vh;
-        min-width: 0;
-        min-height: 0;
-    }
+.shake-on-click.shaking {
+    animation: shake 1s ease-in-out;
 }
 
-/* Shop Page Buttons */
-.door-btn {
-    top: 21%;
-    left: 20%;
-    width: 12%;
-    /* Specific hover effect for door */
-    transition: transform 0.5s ease, filter 0.2s;
-    transform-origin: left center;
+.apple-tree {
+    top: 26%;
+    left: 90%;
+    width: 20%;
 }
 
-.door-btn:hover {
-    transform: translate(-50%, -50%) perspective(1000px) rotateY(-50deg);
+.birdhouse-hole {
+    position: absolute;
+    top: 36.5%;
+    left: 52.5%;
+    width: 2%;
+    z-index: 1;
+    transform: translate(-50%, -50%);
 }
 
-.stuff-btn {
-    top: 40%;
-    left: 51.5%;
-    width: 17.2%;
+.cardinal-head {
+    position: absolute;
+    top: 36.2%;
+    left: 54.3%;
+    width: 2%;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    transition: transform 0.5s ease;
 }
 
-/* 
-   LESSONS PAGE BACKGROUND SCALING
-   Image Dimensions: 3502 x 2769
-   Aspect Ratio: 3502 / 2769 = 1.2647
-*/
+.contact-corner {
+    position: absolute;
+    top: 36.6%;
+    left: 50.12%;
+    width: 2.07%;
+    z-index: 1;
+    transform: translate(50%, -50%);
+}
 
-@media (min-aspect-ratio: 3502/2769) {
+.contact-btn:hover~.cardinal-head,
+.contact-corner:hover~.cardinal-head {
+    transform: translate(-130%, -50%);
+}
+
+
+/* --- LESSONS PAGE --- */
+
+/* Background Scaling */
+/* Image Dimensions: 3502 x 2769, Aspect Ratio: 1.2647 */
+@media (min-aspect-ratio: 4260/3334) {
     .lessons-bg {
         width: 100vw;
         height: auto;
@@ -228,7 +247,7 @@ body {
     }
 }
 
-@media (max-aspect-ratio: 3502/2769) {
+@media (max-aspect-ratio: 4260/3334) {
     .lessons-bg {
         width: auto;
         height: 100vh;
@@ -237,7 +256,13 @@ body {
     }
 }
 
-/* Instrument Buttons Positioning (Placeholders) */
+/* Exit Button */
+.exit-lessons {
+    top: 8%;
+    left: 8%;
+}
+
+/* Buttons */
 .teachers-btn {
     top: 23%;
     left: 51%;
@@ -274,10 +299,171 @@ body {
     width: 10%;
 }
 
-/* Modal Styles */
+/* Instrument Images (Simple Overlay) */
+.djembe-img {
+    top: 59.5%;
+    left: 43%;
+    width: 4.8%;
+}
+
+.piano-img {
+    top: 63.2%;
+    left: 18.7%;
+    width: 25.7%;
+}
+
+.microphone-img {
+    top: 52.3%;
+    left: 85.5%;
+    width: 5%;
+}
+
+.bass-img {
+    top: 72.8%;
+    left: 7.25%;
+    width: 5.9%;
+}
+
+.guitar-img {
+    top: 60.4%;
+    left: 64.1%;
+    width: 13.4%;
+}
+
+
+/* --- LISTENING PAGE --- */
+
+/* Background Scaling */
+/* Aspect Ratio: 1.26468 (approx) */
+@media (min-aspect-ratio: 4279/3347) {
+    .listening-bg {
+        width: 100vw;
+        height: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+@media (max-aspect-ratio: 4279/3347) {
+    .listening-bg {
+        width: auto;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+/* Exit Button */
+.exit-listening {
+    top: 8%;
+    left: 8%;
+}
+
+/* Buttons */
+.skip-btn {
+    top: 21.6%;
+    left: 86.2%;
+    width: 12.3%;
+}
+
+.start-stop-btn {
+    top: 49%;
+    left: 47.2%;
+    width: 8.47%;
+}
+
+.duck-grapes-img {
+    top: 71.7%;
+    left: 57.25%;
+    width: 7.7%;
+}
+
+
+/* --- SHOP PAGE --- */
+
+.shop-wrapper {
+    background-color: black;
+}
+
+/* Background Scaling */
+/* Image Dimensions: 3287 x 2650, Aspect Ratio: 1.2403 */
+@media (min-aspect-ratio: 4226/3297) {
+    .shop-bg {
+        width: 100vw;
+        height: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+@media (max-aspect-ratio: 4226/3297) {
+    .shop-bg {
+        width: auto;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+/* Exit Button */
+.exit-shop {
+    top: 8%;
+    left: 8%;
+}
+
+/* Buttons */
+.door-btn {
+    top: 21.5%;
+    left: 23%;
+    width: 11%;
+    transition: transform 0.5s ease, filter 0.2s;
+    transform-origin: left center;
+}
+
+.door-btn:hover {
+    transform: translate(-50%, -50%) perspective(1000px) rotateY(-50deg);
+}
+
+.stuff-btn {
+    top: 40.55%;
+    left: 52%;
+    width: 17.2%;
+}
+
+
+/* --- CONTACT PAGE --- */
+
+/* Background Scaling */
+/* Image Dimensions: 5204 x 4060, Aspect Ratio: 1.2818 */
+@media (min-aspect-ratio: 4205/3310) {
+    .contact-bg {
+        width: 100vw;
+        height: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+@media (max-aspect-ratio: 4205/3310) {
+    .contact-bg {
+        width: auto;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+/* Exit Button */
+.exit-contact {
+    top: 8%;
+    left: 8%;
+}
+
+
+/* --- MODAL STYLES --- */
+
 .modal {
     display: none;
-    /* Hidden by default */
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -287,7 +473,6 @@ body {
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.5);
     font-weight: bold;
-    /* Black w/ opacity */
 }
 
 .modal-content {
@@ -297,19 +482,15 @@ body {
     border: 8px solid #6a4001;
     width: 40%;
     max-width: 1000px;
-    /* Flexible height based on content */
     height: auto;
-    /* Optional: Limit max height and scroll internally if content is too long */
     max-height: 80vh;
     overflow-y: auto;
-
     border-radius: 0px;
     text-align: center;
     position: relative;
     color: white;
     font-family: 'BodyFont', sans-serif;
     pointer-events: auto;
-    /* Re-enable clicks on the content */
 }
 
 .modal-content h2 {
@@ -365,14 +546,13 @@ body {
     font-family: 'HeaderFont', serif;
 }
 
-/* 
-   CONTACT PAGE BACKGROUND SCALING
-   Image Dimensions: 5204 x 4060
-   Aspect Ratio: 5204 / 4060 = 1.2818
-*/
 
-@media (min-aspect-ratio: 5204/4060) {
-    .contact-bg {
+/* --- WATCH PAGE --- */
+
+/* Background Scaling */
+/* Image Dimensions: 4379 x 3415, Aspect Ratio: 1.28228 */
+@media (min-aspect-ratio: 4379/3415) {
+    .watch-bg {
         width: 100vw;
         height: auto;
         min-width: 0;
@@ -380,11 +560,88 @@ body {
     }
 }
 
-@media (max-aspect-ratio: 5204/4060) {
-    .contact-bg {
+@media (max-aspect-ratio: 4379/3415) {
+    .watch-bg {
         width: auto;
         height: 100vh;
         min-width: 0;
         min-height: 0;
     }
 }
+
+/* Exit Button */
+.exit-watch {
+    top: 8%;
+    left: 8%;
+}
+
+/* Watch Page Images */
+.curtain-left {
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    width: 17%;
+    z-index: 3;
+}
+
+.curtain-right {
+    position: absolute;
+    top: -1%;
+    left: 84%;
+    width: 15.6%;
+    z-index: 3;
+}
+
+.chair-skater-btn {
+    top: 93.55%;
+    left: 84.2%;
+    width: 11.2%;
+    z-index: 3;
+}
+
+
+.chair-skater-btn:hover~.skater-behind {
+    transform: translate(-0%, -56%);
+}
+
+
+.no-skating {
+    position: absolute;
+    top: 40%;
+    left: 80%;
+    width: 10%;
+    z-index: 1;
+}
+
+.skater-behind {
+    position: absolute;
+    top: 90%;
+    left: 82%;
+    width: 4%;
+    z-index: 2;
+    transition: transform 4s ease;
+}
+
+.skater-flat {
+    position: absolute;
+    top: 44%;
+    left: 95%;
+    width: 10%;
+    z-index: 2;
+    display: block;
+    transition: transform 8s ease;
+}
+
+.skater-flat img {
+    transition: transform 0.6s ease;
+}
+
+.skater-behind.falling {
+    transition: transform 0.5s ease-in !important;
+    transform: translate(0, 0) !important;
+}
+
+
+
+
+/* --- CONTACT PAGE --- */

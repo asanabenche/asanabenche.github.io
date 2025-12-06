@@ -12,17 +12,27 @@
 
 <body>
     <div class="bg-wrapper listening-wrapper">
-        <img src="images/listeningRoomBG.png" alt="Background" class="background-img listening-bg">
+        <img src="images/Listen/listenBG.png" alt="Background" class="background-img listening-bg">
+
+        <!-- Exit Sign -->
+        <a href="index.html" class="overlay-link exit-btn exit-listening">
+            <img src="images/exitSign.png" alt="Exit" class="overlay-img">
+        </a>
 
         <!-- Skip Button -->
         <a href="#" class="overlay-link skip-btn">
-            <img src="images/skipSign.png" alt="Skip" class="overlay-img">
+            <img src="images/Listen/skipSign.png" alt="Skip" class="overlay-img">
         </a>
 
         <!-- Start/Stop Button -->
-        <a href="#" class="overlay-link start-stop-btn">
-            <img src="images/startStop.png" alt="Start/Stop" class="overlay-img">
-        </a>
+        <div class="overlay-link start-stop-btn" id="playPauseBtn">
+            <img src="images/Listen/recordPlayer.png" alt="Start/Stop" class="overlay-img">
+        </div>
+
+        <!-- Duck Grapes -->
+        <div class="overlay-simple duck-grapes-img">
+            <img src="images/Listen/duckGrapes.png" alt="Duck Grapes" class="overlay-img">
+        </div>
     </div>
 
     <script src="script.js"></script>
