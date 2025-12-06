@@ -77,7 +77,7 @@ const lessonContent = {
     "Bass": `
     <div class="two-column-layout">
         <div>
-            <p>Ninaad Raman</p>
+            <p class="teacher-name">Ninaad Raman</p>
             <img src="images/Ninaad.png" alt="Ninaad Headshot" style="width:150px;height:150px;">
             <ul style="text-align: left;">
                 <li>Performing Bassist for Asanabenche</li>
@@ -89,7 +89,7 @@ const lessonContent = {
     </div>
     `,
     "Drums": `
-        <p>Jacob Winthrop</p>
+        <p class="teacher-name">Jacob Winthrop</p>
         <img src="images/Jacob.png" alt="Jacob Headshot" style="width:150px;height:150px;">
         <ul style="text-align: left;">
             <li>fill in</li>
@@ -99,7 +99,7 @@ const lessonContent = {
         </ul>
     `,
     "Guitar": `
-        <p>Jacob Winthrop</p>
+        <p class="teacher-name">Jacob Winthrop</p>
         <img src="images/Jacob.png" alt="Jacob Headshot" style="width:150px;height:150px;">
         <ul style="text-align: left;">
             <li>fill in</li>
@@ -109,7 +109,7 @@ const lessonContent = {
         </ul>
     `,
     "Voice": `
-        <p>Ninaad Raman</p>
+        <p class="teacher-name">Ninaad Raman</p>
         <img src="images/Ninaad.png" alt="Ninaad Headshot" style="width:150px;height:150px;">
         <ul style="text-align: left;">
             <li>20+ years of vocal performance experience</li>
@@ -122,7 +122,7 @@ const lessonContent = {
     "Piano": `
         <div class="three-column-layout">
             <div>
-                <p>Anderson Jno Baptiste</p>
+                <p class="teacher-name">Anderson Jno Baptiste</p>
                 <img src="images/Andy.png" alt="Anderson Headshot" style="width:150px;height:150px;">
                 <p>(Jazz Piano)</p>
                 <ul style="text-align: left;">
@@ -133,7 +133,7 @@ const lessonContent = {
                 </ul>
             </div>
             <div>
-                <p>Ninaad Raman</p>
+                <p class="teacher-name">Ninaad Raman</p>
                 <img src="images/Ninaad.png" alt="Ninaad Headshot" style="width:150px;height:150px;">
                 <p>(Classical Piano)</p>
                 <ul style="text-align: left;">
@@ -145,7 +145,7 @@ const lessonContent = {
                 </ul>
             </div>
             <div>
-                <p>Al Nadel</p>
+                <p class="teacher-name">Al Nadel</p>
                 <img src="images/Al.png" alt="Al Headshot" style="width:150px;height:150px;">
                 <p>(Blues Piano)</p>
                 <ul style="text-align: left;">
@@ -156,22 +156,23 @@ const lessonContent = {
                 </ul>
             </div>
         </div>
+        <img src="images/inquire_base.png" alt="Inquire Base" style="width:30%;height:30%;">
     `,
     "Teachers": `
         <div class="two-column-layout">
             <div>
-                <p style="text-align:left;">Ninaad Raman</p>
+                <p class="teacher-name" style="text-align:left;">Ninaad Raman</p>
                 <img src="images/Ninaad.png" alt="Ninaad Headshot" style="width:150px;height:150px;float:left;margin-right:15px;margin-bottom:10px;">
                 <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and developing piano and guitar skills in others around his community.</p>
-                <p style="text-align:left;">Anderson Jno Baptiste</p>
+                <p class="teacher-name" style="text-align:left;">Anderson Jno Baptiste</p>
                 <img src="images/Andy.png" alt="Anderson Headshot" style="width:150px;height:150px;float:left;margin-right:15px;margin-bottom:10px;">
                 <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and developing piano and guitar skills in others around his community.</p>
             </div>
             <div>
-                <p style="text-align:right;">Jacob Winthrop</p>
+                <p class="teacher-name" style="text-align:right;">Jacob Winthrop</p>
                 <img src="images/Jacob.png" alt="Jacob Headshot" style="width:150px;height:150px;float:right;margin-left:15px;margin-bottom:10px;">
                 <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and developing piano and guitar skills in others around his community.</p>
-                <p style="text-align:right;">Al Nadel</p>
+                <p class="teacher-name" style="text-align:right;">Al Nadel</p>
                 <img src="images/Al.png" alt="Al Headshot" style="width:150px;height:150px;float:right;margin-left:15px;margin-bottom:10px;">
                 <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and developing piano and guitar skills in others around his community.</p>
             </div>
