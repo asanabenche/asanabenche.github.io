@@ -21,6 +21,19 @@ body {
     margin: 0;
     overflow: auto;
     /* Allow scrolling */
+    -webkit-user-select: none;
+    /* Safari */
+    user-select: none;
+    /* Standard syntax */
+}
+
+/* Disable image dragging */
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
 }
 
 /* --- GLOBAL STYLES --- */
@@ -154,9 +167,10 @@ body {
 }
 
 .shows-btn {
-    top: 74%;
-    left: 78.8%;
-    width: 22%;
+    top: 76%;
+    left: 76%;
+    width: 20%;
+    rotate: 15.6deg;
 }
 
 .lessons-btn {
@@ -198,6 +212,7 @@ body {
     top: 26%;
     left: 90%;
     width: 20%;
+    z-index: 10;
 }
 
 .birdhouse-hole {
@@ -378,6 +393,24 @@ body {
     width: 7.7%;
 }
 
+/* Wall Art (Listening Page) */
+.wall-art {
+    position: absolute;
+    top: 34%;
+    left: 11.5%;
+    width: 11%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+.bird-music-link {
+    top: 15%;
+    left: 66%;
+    width: 9%;
+    z-index: 5;
+    /* Ensure it's clickable */
+}
+
 
 /* --- SHOP PAGE --- */
 
@@ -430,6 +463,67 @@ body {
     width: 17.2%;
 }
 
+/* Flower 1 */
+.flower-1 {
+    position: absolute;
+    top: 77.7%;
+    left: 85.2%;
+    width: 1.1%;
+    z-index: 2;
+    transform: rotate(-40deg);
+    transform-origin: center center;
+}
+
+.flower-1:hover {
+    transform: rotate(-40deg) scale(1);
+}
+
+/* Flower 2 */
+.flower-2 {
+    position: absolute;
+    top: 77.5%;
+    left: 86.5%;
+    width: 1.5%;
+    z-index: 2;
+    transform: rotate(-20deg);
+    transform-origin: center center;
+}
+
+.flower-2:hover {
+    transform: rotate(-20deg) scale(1);
+}
+
+/* Flower 3 */
+.flower-3 {
+    position: absolute;
+    top: 76%;
+    left: 88%;
+    width: 1.5%;
+    z-index: 2;
+    transform: rotate(-15deg);
+    transform-origin: center center;
+}
+
+.flower-3:hover {
+    transform: rotate(-15deg) scale(1);
+}
+
+/* Flower 4 */
+.flower-4 {
+    position: absolute;
+    top: 66.7%;
+    left: 89.4%;
+    width: 2%;
+    /* Flower 4 seemed larger in file size, maybe needs unique width? */
+    z-index: 2;
+    transform: rotate(5deg);
+    transform-origin: center center;
+}
+
+.flower-4:hover {
+    transform: rotate(5deg) scale(1);
+}
+
 
 /* --- CONTACT PAGE --- */
 
@@ -459,6 +553,125 @@ body {
     left: 8%;
 }
 
+.contact-desk {
+    position: absolute;
+    top: 64%;
+    left: 70.7%;
+    width: 31.8%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+.cardinal-head-contact {
+    position: absolute;
+    top: 62%;
+    left: 72%;
+    width: 10%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    transform-origin: bottom center;
+    transition: transform 0.1s;
+    z-index: 1;
+}
+
+.hola-btn {
+    top: 96.3%;
+    left: 23.4%;
+    width: 12%;
+    z-index: 5;
+}
+
+/* Social Icons Row */
+.youtube-btn {
+    top: 43%;
+    left: 26%;
+    width: 10%;
+    z-index: 5;
+}
+
+.patreon-btn {
+    top: 60%;
+    left: 26%;
+    width: 10%;
+    z-index: 5;
+}
+
+.instagram-btn {
+    top: 50%;
+    left: 40%;
+    width: 9%;
+    z-index: 5;
+}
+
+.tiktok-btn {
+    top: 68%;
+    left: 45%;
+    width: 10%;
+    z-index: 5;
+}
+
+.email-btn {
+    top: 77%;
+    left: 30%;
+    width: 10%;
+    z-index: 5;
+}
+
+/* Talking Animation (Slide Down-Left, Shake, Return) */
+@keyframes talk-bob {
+    0% {
+        transform: translate(-50%, -50%) rotate(-55deg);
+    }
+
+    20% {
+        /* Slide Down and Left */
+        transform: translate(-100%, +27%) rotate(-55deg);
+    }
+
+    30% {
+        /* Shake 1 */
+        transform: translate(-100%, +27%) rotate(-60deg);
+    }
+
+    50% {
+        /* Shake 2 */
+        transform: translate(-100%, +27%) rotate(-55deg);
+    }
+
+    70% {
+        /* Shake 3 */
+        transform: translate(-100%, +27%) rotate(-60deg);
+    }
+
+    100% {
+        /* Return */
+        transform: translate(-50%, -50%) rotate(-55deg);
+    }
+}
+
+.talking {
+    animation: talk-bob 2.0s ease 1;
+}
+
+/* Physics Apple */
+.physics-apple {
+    display: none;
+    /* Hidden until activated */
+    position: fixed;
+    top: 90%;
+    /* Start somewhere visible */
+    left: 90%;
+    width: 5%;
+    height: auto;
+    z-index: 1000;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    /* Prevent scroll on mobile drag */
+}
+
+.physics-apple:active {
+    cursor: grabbing;
+}
 
 /* --- MODAL STYLES --- */
 
@@ -632,16 +845,100 @@ body {
     transition: transform 8s ease;
 }
 
+/* Video Container */
+.video-container {
+    position: absolute;
+    top: 10%;
+    left: 25%;
+    width: 50%;
+    height: 35%;
+    z-index: 1;
+    /* Behind skater (z-index 2) */
+    /* Helper border */
+}
+
+.police-car {
+    position: absolute;
+    top: 50%;
+    left: 95%;
+    width: 20%;
+    z-index: 2;
+    display: block;
+    transition: transform 8s ease;
+}
+
+.police-car img {
+    /* Default correction to make it look flat */
+    transform: rotate(-2deg);
+    transform-origin: 85% 90%;
+    /* Pivot around back wheel */
+    transition: transform 0.5s ease;
+}
+
+/* Wheelie Animation */
+@keyframes wheelie {
+    0% {
+        transform: rotate(-2deg);
+    }
+
+    30% {
+        transform: rotate(10deg);
+        /* Lift up */
+    }
+
+    60% {
+        transform: rotate(-6deg);
+        /* Bounce down */
+    }
+
+    80% {
+        transform: rotate(-1deg);
+        /* Rebound */
+    }
+
+    100% {
+        transform: rotate(-2deg);
+        /* Back to flat */
+    }
+}
+
+.wheelie-anim {
+    animation: wheelie 1s ease-out forwards;
+    animation-delay: 0.2s;
+}
+
 .skater-flat img {
     transition: transform 0.6s ease;
 }
 
 .skater-behind.falling {
-    transition: transform 0.5s ease-in !important;
+    transition: transform 0.2s ease-in !important;
     transform: translate(0, 0) !important;
 }
 
 
 
-
 /* --- CONTACT PAGE --- */
+
+/* --- PAGE TRANSITION --- */
+.page-transition {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    z-index: 2147483647;
+    /* Max Z-Index to ensure it's on top */
+    opacity: 1;
+    pointer-events: all;
+    transition: opacity 0.3s ease;
+    /* Faster fade to black */
+}
+
+.page-transition.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 2.0s ease;
+    /* Even slower fade in */
+}

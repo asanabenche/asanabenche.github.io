@@ -283,17 +283,42 @@ function triggerSecretAnimation() {
         const imgDown = new Image(); imgDown.src = "images/Watch/skaterDown.png";
         const imgFlat = new Image(); imgFlat.src = "images/Watch/skaterFlat.png";
 
-        // Start movement across the screen
-        skaterFlatDiv.style.transform = "translate(-1200%, 0%)";
+        // Select existing police car element
+        const policeCarDiv = document.querySelector('.police-car');
+
+        // Start movement for skater
+        skaterFlatDiv.style.transform = "translate(-1400%, 0%)";
+
+        // Start movement for police car with a delay
+        if (policeCarDiv) {
+            setTimeout(() => {
+                policeCarDiv.style.transform = "translate(-1200%, 0%)";
+
+                // Trigger wheelie animation
+                const policeCarImg = policeCarDiv.querySelector('img');
+                if (policeCarImg) {
+                    policeCarImg.classList.add('wheelie-anim');
+                }
+            }, 2000); // 0.5s delay to follow
+        }
 
         // Trick Sequence
         // 1. Launch (Upward) - Ease Out (Decelerate)
         setTimeout(() => {
             skaterImg.src = imgUp.src;
+
+            // Instantaneously set start position (slightly higher)
+            skaterImg.style.transition = "none";
+            skaterImg.style.transform = "translate(0%, -10%)";
+
+            // Force reflow
+            void skaterImg.offsetWidth;
+
+            // Start Animation
             skaterImg.style.transition = "transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), width 0.5s ease"; // Ease Out
             skaterImg.style.width = "80%";
             skaterImg.style.transform = "translate(0%, -30%)";
-        }, 1500);
+        }, 1200);
 
         // 2. Apex (Downward) - Ease In (Accelerate)
         // Swaps to 'Down' image exactly at the peak
@@ -302,7 +327,7 @@ function triggerSecretAnimation() {
             skaterImg.style.transition = "transform 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53), width 0.5s ease"; // Ease In
             // skaterImg.style.width = "110%"; // Optional
             skaterImg.style.transform = "translate(0%, +10%)";
-        }, 2000); // 1500 + 500ms duration
+        }, 1700); // 1500 + 500ms duration
 
         // 3. Landing (Flat) - Recovery
         // Swaps to 'Flat' image exactly at the bottom
@@ -311,6 +336,404 @@ function triggerSecretAnimation() {
             skaterImg.style.transition = "transform 0.3s ease, width 0.3s ease";
             skaterImg.style.width = "120%";
             skaterImg.style.transform = "translate(0%, -15%)";
-        }, 2500); // 2000 + 500ms duration
+        }, 2200); // 2000 + 500ms duration
     }
 }
+// --- PAGE TRANSITION LOGIC ---
+window.addEventListener('load', () => {
+    const transitionEl = document.querySelector('.page-transition');
+    if (transitionEl) {
+        setTimeout(() => {
+            transitionEl.classList.add('hidden');
+        }, 500); // Wait 0.5s before revealing to ensure rendering
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const links = document.querySelectorAll('a');
+    const transitionEl = document.querySelector('.page-transition');
+
+    if (transitionEl) {
+        links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+
+                // Only intercept internal links that are not hash links or javascript:
+                if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !link.target) {
+                    e.preventDefault();
+                    transitionEl.classList.remove('hidden');
+
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 300); // 0.3s match CSS transition
+                }
+            });
+        });
+    }
+
+    // --- GENERIC AUDIO ON HOVER ---
+    // Selects any element with a 'data-audio' attribute and plays it on hover.
+    const audioElements = document.querySelectorAll('[data-audio]');
+
+    audioElements.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            const audioSrc = el.getAttribute('data-audio');
+            if (audioSrc) {
+                const audio = new Audio(audioSrc);
+                audio.play().catch(err => {
+                    // Benign error: Audio play was prevented (e.g., no user interaction yet)
+                    console.log('Audio playback prevented:', err);
+                });
+            }
+        });
+    });
+
+    // --- FLOWER INTERACTION (Shop Page) ---
+    // Simple CSS hover effects are handled in styles.css
+    // No complex JS required for this feature as per user request.
+
+    // --- CONTACT PAGE INTERACTION ---
+    const holaBtn = document.querySelector('.hola-btn');
+    const cardinalHead = document.querySelector('.cardinal-head-contact');
+
+    if (holaBtn && cardinalHead) {
+        // Configuration: Add your file names here as you drop them in the folder
+        const spanishFiles = [
+            'audioFiles/audioSpanish/pluribusCabron.wav'
+        ];
+
+        holaBtn.addEventListener('click', () => {
+            // 1. Play Random Audio
+            const randomFile = spanishFiles[Math.floor(Math.random() * spanishFiles.length)];
+            // DEBUG: Alert user what file is being tried
+            // alert('Trying to play: ' + randomFile); 
+
+            const audio = new Audio(randomFile);
+
+            audio.play().catch(err => {
+                console.log('Audio missing or blocked:', err);
+                alert('Audio Error: ' + err.message + '\nFile: ' + randomFile);
+            });
+
+            // 2. Animate Head (Talk)
+            cardinalHead.classList.add('talking');
+
+            // Stop animation after a set time (e.g., 2 seconds) or when audio ends
+            // Ideally we use audio.onended but if file fails we need a fallback
+            audio.onended = () => {
+                cardinalHead.classList.remove('talking');
+            };
+
+            // Fallback safety removal
+            setTimeout(() => {
+                cardinalHead.classList.remove('talking');
+            }, 3000); // 3 seconds max talk time
+        });
+    }
+
+    // --- PHYSICS APPLE (Home Page) ---
+    const apple = document.querySelector('.physics-apple');
+    const appleTree = document.querySelector('.apple-tree');
+
+    if (apple && appleTree) {
+        let appleClicks = 0;
+
+        appleTree.addEventListener('click', () => {
+            appleClicks++;
+            if (appleClicks === 3) {
+                startApplePhysics();
+            }
+        });
+
+        function startApplePhysics() {
+            apple.style.display = 'block';
+
+            // Physics State
+            let state = {
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
+                vx: 0,
+                vy: 0,
+                angle: 0,
+                angularVelocity: 0,
+                isDragging: false,
+                lastMouseX: 0,
+                lastMouseY: 0,
+                lastTime: 0,
+                velocityTracker: []
+            };
+
+            // Constants
+            const GRAVITY = 0.5;
+            const BOUNCE = 0.7; // Energy retained after bounce
+            const FRICTION = 0.99; // Air resistance
+            const THROW_FORCE = 15; // Multiplier for throw velocity (tuned for time-based calc)
+            const ROTATION_SENSITIVITY = 1.5; // How much it spins when thrown
+            const ANGULAR_FRICTION = 0.98; // Spin slows down over time
+
+            // Drag Handlers
+            apple.addEventListener('mousedown', (e) => {
+                state.isDragging = true;
+                state.vx = 0;
+                state.vy = 0;
+                state.angularVelocity = 0;
+                state.lastMouseX = e.clientX;
+                state.lastMouseY = e.clientY;
+                state.lastTime = performance.now();
+                state.velocityTracker = [{ x: e.clientX, y: e.clientY, time: performance.now() }];
+                e.preventDefault(); // Prevent text selection
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (state.isDragging) {
+                    const now = performance.now();
+                    const dt = now - state.lastTime;
+
+                    // Move apple directly
+                    state.x = e.clientX - (apple.offsetWidth / 2);
+                    state.y = e.clientY - (apple.offsetHeight / 2);
+
+                    // Track position for throw calculation
+                    state.velocityTracker.push({
+                        x: e.clientX,
+                        y: e.clientY,
+                        time: now
+                    });
+
+                    // Keep only last 100ms
+                    state.velocityTracker = state.velocityTracker.filter(p => now - p.time < 100);
+
+                    // Calculate throw velocity based on mouse movement speed (Instantaneous for rotation)
+                    if (dt > 0) {
+                        const dx = e.clientX - state.lastMouseX;
+                        // Spin based on horizontal movement
+                        state.angularVelocity = dx * ROTATION_SENSITIVITY;
+                    }
+
+                    state.lastMouseX = e.clientX;
+                    state.lastMouseY = e.clientY;
+                    state.lastTime = now;
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (state.isDragging) {
+                    state.isDragging = false;
+
+                    // Calculate final release velocity from tracker
+                    const now = performance.now();
+                    // Filter again to be sure
+                    const recentPoints = state.velocityTracker.filter(p => now - p.time < 100);
+
+                    if (recentPoints.length > 1) {
+                        const first = recentPoints[0];
+                        const last = recentPoints[recentPoints.length - 1];
+                        const dt = last.time - first.time;
+
+                        if (dt > 0) {
+                            state.vx = ((last.x - first.x) / dt) * THROW_FORCE;
+                            state.vy = ((last.y - first.y) / dt) * THROW_FORCE;
+                        } else {
+                            state.vx = 0;
+                            state.vy = 0;
+                        }
+                    } else {
+                        // Not enough data (stationary hold)
+                        state.vx = 0;
+                        state.vy = 0;
+                    }
+                }
+            });
+
+            // Loop
+            function updatePhysics() {
+                if (!state.isDragging) {
+                    // Apply Forces
+                    state.vy += GRAVITY;
+                    state.vx *= FRICTION;
+                    state.vy *= FRICTION;
+
+                    // Apply Rotation
+                    state.angle += state.angularVelocity;
+                    state.angularVelocity *= ANGULAR_FRICTION;
+
+                    state.x += state.vx;
+                    state.y += state.vy;
+
+
+                    // Layer Switching: If apple falls below the tree, bring it to front
+                    // We check if the apple's top is below the tree's bottom (with some buffer)
+                    // The tree is static, so we can check bounds again or cache them.
+                    const treeBounds = appleTree.getBoundingClientRect();
+                    if (state.y > (treeBounds.bottom - 50)) {
+                        apple.style.zIndex = "1000";
+                    }
+
+                    // Collisions with Window Bounds
+                    const bounds = {
+                        left: 0,
+                        right: window.innerWidth - apple.offsetWidth,
+                        top: 0,
+                        bottom: window.innerHeight - apple.offsetHeight
+                    };
+
+                    if (state.y > bounds.bottom) {
+                        state.y = bounds.bottom;
+                        state.vy *= -BOUNCE;
+                        if (Math.abs(state.vy) < GRAVITY * 2) state.vy = 0;
+                    }
+                    if (state.y < bounds.top) {
+                        state.y = bounds.top;
+                        state.vy *= -BOUNCE;
+                    }
+                    if (state.x > bounds.right) {
+                        state.x = bounds.right;
+                        state.vx *= -BOUNCE;
+                    }
+                    if (state.x < bounds.left) {
+                        state.x = bounds.left;
+                        state.vx *= -BOUNCE;
+                    }
+
+                    // Collisions with Solid Objects (OBB - Oriented Bounding Box)
+                    const solidObjects = document.querySelectorAll('.solid-object');
+
+                    // Treat apple as a circle for smoother collision against corners
+                    const appleRadius = apple.offsetWidth / 2;
+                    const appleCenterX = state.x + appleRadius;
+                    const appleCenterY = state.y + appleRadius;
+
+                    solidObjects.forEach(obj => {
+                        const rect = obj.getBoundingClientRect();
+
+                        // NOTE: getBoundingClientRect gives the *axis-aligned* box of the rotated element.
+                        // We need the center, size, and rotation to reconstruct the OBB.
+                        // However, finding the exact center of the OBB from the AABB is tricky if we don't know the unrotated size.
+                        // A better approach is to rely on the CSS width/height and manual offset calculation, 
+                        // OR (simpler for this case) assume the center of the AABB is the center of the OBB (true for center-rotated elements)
+
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+
+                        // Parse Rotation
+                        const style = window.getComputedStyle(obj);
+                        let angle = 0;
+
+                        // Try 'rotate' property first (modern)
+                        const rotateProp = style.rotate;
+                        if (rotateProp && rotateProp !== 'none') {
+                            // simplistic parse: assumes "15deg" or similar 
+                            angle = parseFloat(rotateProp) * (Math.PI / 180);
+                        } else {
+                            // Fallback to transform matrix
+                            const transform = style.transform;
+                            if (transform && transform !== 'none') {
+                                const values = transform.split('(')[1].split(')')[0].split(',');
+                                const a = parseFloat(values[0]);
+                                const b = parseFloat(values[1]);
+                                angle = Math.atan2(b, a);
+                            }
+                        }
+
+                        // Dimensions (Unrotated)
+                        // We assume the offsetWidth/Height are the unrotated dimensions
+                        const halfW = obj.offsetWidth / 2;
+                        const halfH = obj.offsetHeight / 2;
+
+                        // 1. Transform Apple Center Phase -> Object Local Space
+                        // Translate
+                        let dx = appleCenterX - centerX;
+                        let dy = appleCenterY - centerY;
+
+                        // Rotate (Counter-rotate by object angle)
+                        // x' = x*cos(-a) - y*sin(-a)
+                        // y' = x*sin(-a) + y*cos(-a)
+                        // cos(-a) = cos(a), sin(-a) = -sin(a)
+                        const cos = Math.cos(angle);
+                        const sin = Math.sin(angle);
+
+                        const localX = dx * cos + dy * sin;
+                        const localY = -dx * sin + dy * cos;
+
+                        // 2. Find Closest Point in Local Space (AABB clamping)
+                        // Clamp localX between -halfW and halfW
+                        const closestX = Math.max(-halfW, Math.min(localX, halfW));
+                        const closestY = Math.max(-halfH, Math.min(localY, halfH));
+
+                        // 3. Distance Check
+                        const distX = localX - closestX;
+                        const distY = localY - closestY;
+                        const distanceSquared = (distX * distX) + (distY * distY);
+
+                        if (distanceSquared < (appleRadius * appleRadius)) {
+                            // COLLISION DETECTED
+
+                            const distance = Math.sqrt(distanceSquared);
+
+                            // Normal in Local Space
+                            let normalX, normalY;
+
+                            if (distance > 0) {
+                                normalX = distX / distance;
+                                normalY = distY / distance;
+                            } else {
+                                // Center is inside the rect exactly (rare, deep penetration)
+                                // Push out to nearest edge
+                                // (Simplification: just push up localY)
+                                normalX = 0;
+                                normalY = -1;
+                            }
+
+                            // 4. Transform Normal & Correction back to World Space
+                            // Rotate normal by +angle
+                            const worldNormalX = normalX * cos - normalY * sin;
+                            const worldNormalY = normalX * sin + normalY * cos;
+
+                            // Resolve Position (Push out)
+                            const overlap = appleRadius - distance;
+                            state.x += worldNormalX * overlap;
+                            state.y += worldNormalY * overlap;
+
+                            // Update velocity (Reflect)
+                            // v' = v - 2 * (v . n) * n
+                            const dotProd = state.vx * worldNormalX + state.vy * worldNormalY;
+
+                            // Only bounce if moving INTO the wall
+                            if (dotProd < 0) {
+                                state.vx = (state.vx - 2 * dotProd * worldNormalX) * BOUNCE;
+                                state.vy = (state.vy - 2 * dotProd * worldNormalY) * BOUNCE;
+                            }
+                        }
+                    });
+                }
+
+
+                apple.style.left = `${state.x}px`;
+                apple.style.top = `${state.y}px`;
+
+                // Calculate Distance Scaling
+                const distToOrigin = Math.sqrt(state.x * state.x + state.y * state.y);
+                const maxDist = window.innerWidth * 0.8;
+                let scale = distToOrigin / maxDist;
+                scale = Math.max(0.5, Math.min(1.0, scale));
+
+                apple.style.transform = `rotate(${state.angle}deg) scale(${scale})`;
+
+                requestAnimationFrame(updatePhysics);
+            }
+
+            // Init
+            const treeRect = appleTree.getBoundingClientRect();
+            // Start centered in the tree, slightly up
+            state.x = treeRect.left + (treeRect.width / 2) - (apple.offsetWidth / 2);
+            state.y = treeRect.top + (treeRect.height / 3);
+
+            // Set initial state behind tree
+            apple.style.zIndex = "1";
+            apple.style.display = 'block'; // Make visible (but behind)
+
+            updatePhysics();
+        }
+    }
+});
+
