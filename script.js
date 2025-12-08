@@ -581,6 +581,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         state.y = bounds.bottom;
                         state.vy *= -BOUNCE;
                         if (Math.abs(state.vy) < GRAVITY * 2) state.vy = 0;
+
+                        // Rolling Friction (Influence Rotation)
+                        // Moving Right (+Vx) -> Spin Clockwise (+Angular)
+                        // Moving Left (-Vx) -> Spin Counter-Clockwise (-Angular)
+                        state.angularVelocity += state.vx * 0.1;
                     }
                     if (state.y < bounds.top) {
                         state.y = bounds.top;
@@ -700,8 +705,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // Only bounce if moving INTO the wall
                             if (dotProd < 0) {
+                                const oldVx = state.vx;
+
                                 state.vx = (state.vx - 2 * dotProd * worldNormalX) * BOUNCE;
                                 state.vy = (state.vy - 2 * dotProd * worldNormalY) * BOUNCE;
+
+                                // Add Rotation based on horizontal impact
+                                // Rule: Bouncing Left (Negative Impulse) -> Counter-Clockwise Spin (Negative Angle change)
+                                //       Bouncing Right (Positive Impulse) -> Clockwise Spin (Positive Angle change)
+                                const deltaVx = state.vx - oldVx;
+                                state.angularVelocity += deltaVx * 1.5;
                             }
                         }
                     });
@@ -734,6 +747,152 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updatePhysics();
         }
+    }
+});
+
+// --- AUDIO MIXER (Lessons Page) ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Map classes to audio files
+    const mixerConfig = [
+        { selector: '.djembe-img', file: 'audioFiles/lessonsAudio/lessonsPerc.wav', name: 'Perc' },
+        { selector: '.piano-img', file: 'audioFiles/lessonsAudio/lessonsPiano.wav', name: 'Piano' },
+        { selector: '.bass-img', file: 'audioFiles/lessonsAudio/lessonsBass.wav', name: 'Bass' },
+        { selector: '.guitar-img', file: 'audioFiles/lessonsAudio/lessonsGuitar.wav', name: 'Guitar' },
+        { selector: '.microphone-img', file: 'audioFiles/lessonsAudio/lessonsVoice.wav', name: 'Voice' }
+    ];
+
+    // Check if we are on the lessons page
+    const firstInstrument = document.querySelector(mixerConfig[0].selector);
+
+    if (firstInstrument) {
+        let audioContext = null;
+        let globalStartTime = 0;
+        let isPlaying = false;
+        let loopDuration = 0;
+        const tracks = []; // Stores { buffer, source, gainNode, config }
+
+        // Setup Audio Context (Must happen on user gesture)
+        const initAudio = async () => {
+            if (audioContext) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
+
+            // Load all buffers
+            await Promise.all(mixerConfig.map(async (cfg) => {
+                try {
+                    const response = await fetch(cfg.file);
+                    const arrayBuffer = await response.arrayBuffer();
+                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+                    tracks.push({
+                        config: cfg,
+                        buffer: audioBuffer,
+                        source: null,
+                        gainNode: null,
+                        active: false,
+                        element: document.querySelector(cfg.selector)
+                    });
+
+                    // Set loop duration based on the first track (assumed equal)
+                    if (cfg.name === 'Perc') {
+                        loopDuration = audioBuffer.duration;
+                    }
+                } catch (err) {
+                    console.error("Failed to load audio: " + cfg.name, err);
+                }
+            }));
+        };
+
+        // Playback Engine
+        const startPlayback = () => {
+            // Create nodes
+            const now = audioContext.currentTime;
+            // Add a small delay to ensure all start exactly together
+            globalStartTime = now + 0.1;
+
+            tracks.forEach(track => {
+                track.source = audioContext.createBufferSource();
+                track.source.buffer = track.buffer;
+                track.source.loop = true;
+
+                track.gainNode = audioContext.createGain();
+                // Start muted (gain 0) unless it's the one we just clicked (handled in toggle)
+                track.gainNode.gain.setValueAtTime(0, now);
+
+                track.source.connect(track.gainNode);
+                track.gainNode.connect(audioContext.destination);
+
+                track.source.start(globalStartTime);
+            });
+
+            isPlaying = true;
+        };
+
+        const toggleTrack = async (targetSelector) => {
+            // Initialize if first click
+            if (!audioContext) {
+                await initAudio();
+                startPlayback();
+            } else if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            const track = tracks.find(t => t.config.selector === targetSelector);
+            if (!track) return;
+
+            const now = audioContext.currentTime;
+
+            if (track.active) {
+                // TURN OFF
+                // Instant mute (with tiny fade to avoid click)
+                track.gainNode.gain.cancelScheduledValues(now);
+                track.gainNode.gain.setTargetAtTime(0, now, 0.05); // Rapid decay
+
+                track.active = false;
+                track.element.classList.remove('active-instrument');
+            } else {
+                // TURN ON
+                track.active = true;
+
+                // Sync Logic
+                // Next loop time = Start + (Duration * ceil((Now - Start) / Duration))
+                const elapsedTime = now - globalStartTime;
+                const currentLoopIndex = Math.floor(elapsedTime / loopDuration);
+                const nextLoopStart = globalStartTime + ((currentLoopIndex + 1) * loopDuration);
+
+                // If we are very close to start (e.g. first click), just start now?
+                // Actually, for the very first click (initializing system), we want immediate sound.
+                // We can detect this by checking if elapsedTime is negative or very small.
+
+                if (elapsedTime < 0.2) {
+                    // Immediate start
+                    track.gainNode.gain.setTargetAtTime(1, now, 0.05);
+                    track.element.classList.add('active-instrument');
+                } else {
+                    // Delayed Unmute
+                    track.gainNode.gain.cancelScheduledValues(now);
+                    track.gainNode.gain.setValueAtTime(0, now); // ensuring
+                    track.gainNode.gain.setValueAtTime(1, nextLoopStart);
+
+                    // Visual Sync
+                    const delayMs = (nextLoopStart - now) * 1000;
+                    setTimeout(() => {
+                        if (track.active) { // Check if user didn't cancel
+                            track.element.classList.add('active-instrument');
+                        }
+                    }, delayMs);
+                }
+            }
+        };
+
+        // Attach Listeners
+        mixerConfig.forEach(cfg => {
+            const el = document.querySelector(cfg.selector);
+            if (el) {
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', () => toggleTrack(cfg.selector));
+            }
+        });
     }
 });
 

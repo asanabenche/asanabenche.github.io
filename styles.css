@@ -304,13 +304,13 @@ img {
 
 .microphone-btn {
     top: 35%;
-    left: 50%;
+    left: 65%;
     width: 5%;
 }
 
 .piano-btn {
-    top: 37%;
-    left: 65%;
+    top: 35%;
+    left: 50%;
     width: 10%;
 }
 
@@ -941,4 +941,23 @@ img {
     pointer-events: none;
     transition: opacity 2.0s ease;
     /* Even slower fade in */
+}
+
+/* Audio Interaction Styles */
+@keyframes pulse-brightness {
+    0% {
+        filter: brightness(1) drop-shadow(0 0 0px rgba(255, 255, 255, 0));
+    }
+
+    50% {
+        filter: brightness(1.5) drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+
+    100% {
+        filter: brightness(1) drop-shadow(0 0 0px rgba(255, 255, 255, 0));
+    }
+}
+
+.active-instrument img {
+    animation: pulse-brightness 2s infinite ease-in-out;
 }
