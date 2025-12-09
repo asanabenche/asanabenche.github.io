@@ -278,6 +278,9 @@ function triggerSecretAnimation() {
     const skaterImg = skaterFlatDiv ? skaterFlatDiv.querySelector('img') : null;
 
     if (skaterFlatDiv && skaterImg) {
+        // Unlock Watch Egg (Set status variable)
+        unlockEgg('watchEggStatus');
+
         // Preload images
         const imgUp = new Image(); imgUp.src = "images/Watch/skaterUp.png";
         const imgDown = new Image(); imgDown.src = "images/Watch/skaterDown.png";
@@ -286,13 +289,28 @@ function triggerSecretAnimation() {
         // Select existing police car element
         const policeCarDiv = document.querySelector('.police-car');
 
-        // Start movement for skater
-        skaterFlatDiv.style.transform = "translate(-1400%, 0%)";
+        // Play Audio (plays "sooner" by starting now while animation waits)
+        const skaterAudio = new Audio('audioFiles/watchAudio/skaterAnimationAudio.wav');
+        skaterAudio.play().catch(err => console.log('Skater audio blocked:', err));
 
+        // Start movement for skater (Delayed 0.2s)
+        setTimeout(() => {
+            skaterFlatDiv.style.display = 'block';
+            // Allow browser to render the block state before transitioning
+            requestAnimationFrame(() => {
+                skaterFlatDiv.style.transform = "translate(-1400%, 0%)";
+            });
+        }, 200);
+
+        // Start movement for police car with a delay
         // Start movement for police car with a delay
         if (policeCarDiv) {
             setTimeout(() => {
-                policeCarDiv.style.transform = "translate(-1200%, 0%)";
+                policeCarDiv.style.display = 'block';
+                // Allow browser to render the block state
+                requestAnimationFrame(() => {
+                    policeCarDiv.style.transform = "translate(-1200%, 0%)";
+                });
 
                 // Trigger wheelie animation
                 const policeCarImg = policeCarDiv.querySelector('img');
@@ -350,6 +368,13 @@ window.addEventListener('load', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Prevent dragging images
+    document.querySelectorAll('img').forEach(img => {
+        img.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+        });
+    });
+
     const links = document.querySelectorAll('a');
     const transitionEl = document.querySelector('.page-transition');
 
@@ -389,45 +414,128 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- FLOWER INTERACTION (Shop Page) ---
-    // Simple CSS hover effects are handled in styles.css
-    // No complex JS required for this feature as per user request.
+    // Shop Egg Logic: Hover 4 -> 3 -> 2 -> 1 within 2 seconds
+    const flowers = [
+        document.querySelector('.flower-1'),
+        document.querySelector('.flower-2'),
+        document.querySelector('.flower-3'),
+        document.querySelector('.flower-4')
+    ];
+
+    if (flowers[0] && flowers[1] && flowers[2] && flowers[3]) {
+        let hoverSequence = [];
+
+        flowers.forEach((flower, index) => {
+            const flowerId = index + 1; // 1, 2, 3, 4
+            flower.addEventListener('mouseenter', () => {
+                const now = Date.now();
+                hoverSequence.push({ id: flowerId, time: now });
+
+                // Keep only last 4
+                if (hoverSequence.length > 4) {
+                    hoverSequence.shift();
+                }
+
+                // Check for 4 -> 3 -> 2 -> 1
+                if (hoverSequence.length === 4) {
+                    const ids = hoverSequence.map(item => item.id);
+                    // Expected: [4, 3, 2, 1]
+                    if (ids[0] === 4 && ids[1] === 3 && ids[2] === 2 && ids[3] === 1) {
+                        const startTime = hoverSequence[0].time;
+                        const endTime = hoverSequence[3].time;
+                        const duration = endTime - startTime;
+
+                        if (duration < 2000) { // Under 2 seconds
+                            // Unlock Shop Egg
+                            unlockEgg('shopEggStatus');
+                            console.log("Shop Egg Status: TRUE (Speed: " + duration + "ms)");
+                        }
+                    }
+                }
+            });
+        });
+    }
 
     // --- CONTACT PAGE INTERACTION ---
     const holaBtn = document.querySelector('.hola-btn');
     const cardinalHead = document.querySelector('.cardinal-head-contact');
 
     if (holaBtn && cardinalHead) {
-        // Configuration: Add your file names here as you drop them in the folder
-        const spanishFiles = [
-            'audioFiles/audioSpanish/pluribusCabron.wav'
-        ];
+        // Configuration: Sequential Playback 1-11
+        const spanishFiles = [];
+        for (let i = 1; i <= 11; i++) {
+            spanishFiles.push(`audioFiles/contactAudio/spanishAudio${i}.wav`);
+        }
+
+        let currentAudioIndex = 0;
+        let isHolaPlaying = false;
 
         holaBtn.addEventListener('click', () => {
-            // 1. Play Random Audio
-            const randomFile = spanishFiles[Math.floor(Math.random() * spanishFiles.length)];
-            // DEBUG: Alert user what file is being tried
-            // alert('Trying to play: ' + randomFile); 
+            // Prevent multiple clicks while playing
+            if (isHolaPlaying) return;
 
-            const audio = new Audio(randomFile);
+            // Check if we reached the end
+            if (currentAudioIndex >= spanishFiles.length) {
+                // Should be removed already, but safe guard
+                if (cardinalHead.parentNode) {
+                    cardinalHead.parentNode.removeChild(cardinalHead);
+                }
+                return;
+            }
+
+            // 1. Play Next Audio
+            const nextFile = spanishFiles[currentAudioIndex];
+            const audio = new Audio(nextFile);
+
+            // Set Playing State
+            isHolaPlaying = true;
+            holaBtn.style.cursor = 'default'; // Visual feedback
+            // audio.play() is inside verify logic below, wait, I need to check where audio.play() is.
+            // Ah, I need to wrap or modify the existing play block.
 
             audio.play().catch(err => {
                 console.log('Audio missing or blocked:', err);
-                alert('Audio Error: ' + err.message + '\nFile: ' + randomFile);
+                // Reset if failed
+                isHolaPlaying = false;
+                holaBtn.style.cursor = 'pointer';
+                alert('Audio Error: ' + err.message + '\nFile: ' + nextFile);
             });
 
             // 2. Animate Head (Talk)
             cardinalHead.classList.add('talking');
 
-            // Stop animation after a set time (e.g., 2 seconds) or when audio ends
-            // Ideally we use audio.onended but if file fails we need a fallback
+            // Advance Index
+            currentAudioIndex++;
+
+            // Stop animation when audio ends
             audio.onended = () => {
                 cardinalHead.classList.remove('talking');
+
+                // Reset State
+                isHolaPlaying = false;
+                holaBtn.style.cursor = 'pointer';
+
+                // If that was the last file, remove the element
+                if (currentAudioIndex >= spanishFiles.length) {
+                    // Unlock Contact Egg
+                    unlockEgg('contactEggStatus');
+                    console.log("Contact Egg Status: TRUE");
+
+                    // Wait for the return transition (0.5s) to finish before removing
+                    setTimeout(() => {
+                        if (cardinalHead.parentNode) {
+                            cardinalHead.parentNode.removeChild(cardinalHead);
+                        }
+                    }, 550); // 500ms transition + 50ms buffer
+                }
             };
 
-            // Fallback safety removal
-            setTimeout(() => {
-                cardinalHead.classList.remove('talking');
-            }, 3000); // 3 seconds max talk time
+            // Fallback safety removal for animation (in case audio fails or is super long)
+            // But we don't want to remove the ELEMENT on timeout, just stop talking.
+            // USER REQUEST UPDATE: Remove timer, rely on audio end.
+            // Keeping a very long safety just directly in case of error, or logic can remain.
+            // Actually user said explicitly "not on a timer".
+            // We will trust onended.
         });
     }
 
@@ -450,8 +558,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Physics State
             let state = {
-                x: window.innerWidth / 2,
-                y: window.innerHeight / 2,
+                x: window.innerWidth / 2 + window.scrollX,
+                y: window.innerHeight / 2 + window.scrollY,
                 vx: 0,
                 vy: 0,
                 angle: 0,
@@ -477,10 +585,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.vx = 0;
                 state.vy = 0;
                 state.angularVelocity = 0;
-                state.lastMouseX = e.clientX;
-                state.lastMouseY = e.clientY;
+                state.lastMouseX = e.pageX;
+                state.lastMouseY = e.pageY;
                 state.lastTime = performance.now();
-                state.velocityTracker = [{ x: e.clientX, y: e.clientY, time: performance.now() }];
+                state.velocityTracker = [{ x: e.pageX, y: e.pageY, time: performance.now() }];
                 e.preventDefault(); // Prevent text selection
             });
 
@@ -489,14 +597,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const now = performance.now();
                     const dt = now - state.lastTime;
 
-                    // Move apple directly
-                    state.x = e.clientX - (apple.offsetWidth / 2);
-                    state.y = e.clientY - (apple.offsetHeight / 2);
+                    // Move apple directly (Absolute Position)
+                    state.x = e.pageX - (apple.offsetWidth / 2);
+                    state.y = e.pageY - (apple.offsetHeight / 2);
 
                     // Track position for throw calculation
                     state.velocityTracker.push({
-                        x: e.clientX,
-                        y: e.clientY,
+                        x: e.pageX,
+                        y: e.pageY,
                         time: now
                     });
 
@@ -505,13 +613,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Calculate throw velocity based on mouse movement speed (Instantaneous for rotation)
                     if (dt > 0) {
-                        const dx = e.clientX - state.lastMouseX;
+                        const dx = e.pageX - state.lastMouseX;
                         // Spin based on horizontal movement
                         state.angularVelocity = dx * ROTATION_SENSITIVITY;
                     }
 
-                    state.lastMouseX = e.clientX;
-                    state.lastMouseY = e.clientY;
+                    state.lastMouseX = e.pageX;
+                    state.lastMouseY = e.pageY;
                     state.lastTime = now;
                 }
             });
@@ -561,20 +669,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     state.y += state.vy;
 
 
-                    // Layer Switching: If apple falls below the tree, bring it to front
-                    // We check if the apple's top is below the tree's bottom (with some buffer)
-                    // The tree is static, so we can check bounds again or cache them.
+                    // Layer Switching: If apple falls below the tree, bring it to front (z=15)
+                    // We check if the apple's Y (absolute) is below the tree's bottom
                     const treeBounds = appleTree.getBoundingClientRect();
-                    if (state.y > (treeBounds.bottom - 50)) {
-                        apple.style.zIndex = "1000";
+                    const treeBottomAbsolute = treeBounds.bottom + window.scrollY;
+
+                    if (state.y > (treeBottomAbsolute - 50)) {
+                        apple.style.zIndex = "15"; // Between Tree (10) and Basket (20)
                     }
 
-                    // Collisions with Window Bounds
+                    // Collisions with Document Bounds (Absolute)
+                    const docWidth = document.documentElement.scrollWidth;
+                    const docHeight = document.documentElement.scrollHeight;
+
                     const bounds = {
                         left: 0,
-                        right: window.innerWidth - apple.offsetWidth,
+                        right: docWidth - apple.offsetWidth,
                         top: 0,
-                        bottom: window.innerHeight - apple.offsetHeight
+                        bottom: docHeight - apple.offsetHeight
                     };
 
                     if (state.y > bounds.bottom) {
@@ -771,6 +883,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let loopDuration = 0;
         const tracks = []; // Stores { buffer, source, gainNode, config }
 
+        // Lessons Egg State
+        let activeSequence = [];
+        let lessonsEggTimer = null;
+        const correctSequence = ['Perc', 'Bass', 'Piano', 'Guitar', 'Voice'];
+
         // Setup Audio Context (Must happen on user gesture)
         const initAudio = async () => {
             if (audioContext) return;
@@ -850,9 +967,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 track.active = false;
                 track.element.classList.remove('active-instrument');
+
+                // --- Egg Logic (OFF) ---
+                activeSequence = activeSequence.filter(name => name !== track.config.name);
+                if (lessonsEggTimer) {
+                    clearTimeout(lessonsEggTimer);
+                    lessonsEggTimer = null;
+                    console.log("Lessons Egg Timer: Cancelled (Instrument removed)");
+                }
+
             } else {
                 // TURN ON
                 track.active = true;
+
+                // --- Egg Logic (ON) ---
+                activeSequence.push(track.config.name);
+
+                // Check Sequence
+                // We want exact match of the correctSequence in activeSequence
+                const isCorrectOrder = activeSequence.length === correctSequence.length &&
+                    activeSequence.every((val, index) => val === correctSequence[index]);
+
+                if (isCorrectOrder) {
+                    console.log("Lessons Egg Timer: Started (4s)...");
+                    lessonsEggTimer = setTimeout(() => {
+                        unlockEgg('lessonsEggStatus');
+                        console.log("Lessons Egg Status: TRUE");
+                    }, 4000);
+                } else if (activeSequence.length > correctSequence.length) {
+                    // Should be impossible if max is 5, but safe guard
+                    if (lessonsEggTimer) {
+                        clearTimeout(lessonsEggTimer);
+                        lessonsEggTimer = null;
+                    }
+                } else {
+                    // Not complete yet or wrong order, ensure timer is clear if it was somehow running
+                    if (lessonsEggTimer) {
+                        clearTimeout(lessonsEggTimer);
+                        lessonsEggTimer = null;
+                    }
+                }
 
                 // Sync Logic
                 // Next loop time = Start + (Duration * ceil((Now - Start) / Duration))
@@ -896,3 +1050,98 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
+// Listen Page Interaction
+document.addEventListener('DOMContentLoaded', () => {
+    const duckGrapes = document.querySelector('.duck-grapes-img'); // Wrapper div
+    const popupContainer = document.querySelector('.dynamic-popup'); // Wrapper div
+    const popupImage = document.getElementById('popupImage');
+
+    if (duckGrapes && popupContainer && popupImage) {
+        duckGrapes.style.cursor = 'pointer';
+        // Ensure clicks register if overlays interfere
+        duckGrapes.style.pointerEvents = 'auto';
+
+        duckGrapes.addEventListener('click', () => {
+            // Prevent spamming if already animating
+            if (popupContainer.classList.contains('popup-animate')) return;
+
+            const rand = Math.random();
+            let imageSrc = '';
+
+            // Grapes: 45% (0 - 0.45)
+            // Glue: 35% (0.45 - 0.80)
+            // Lemonade: 20% (0.80 - 1.00)
+
+            if (rand < 0.45) {
+                imageSrc = 'images/Listen/grapes.png';
+                console.log("Rolled: Grapes");
+            } else if (rand < 0.80) {
+                imageSrc = 'images/Listen/glue.png';
+                console.log("Rolled: Glue");
+            } else {
+                imageSrc = 'images/Listen/lemonade.png';
+                console.log("Rolled: Lemonade (Egg Unlocked)");
+
+                // Unlock Listen Egg
+                unlockEgg('listenEggStatus');
+            }
+
+            // Play Animation on CONTAINER
+            popupImage.src = imageSrc;
+            popupContainer.classList.add('popup-animate');
+
+            // Reset after animation (2.0s)
+            setTimeout(() => {
+                popupContainer.classList.remove('popup-animate');
+                popupImage.src = '';
+            }, 2000);
+        });
+    }
+});
+
+
+// Check Watch Egg Status on Load
+// Check Egg Status on Load and Assign Slots
+document.addEventListener('DOMContentLoaded', () => {
+    const eggs = [
+        { key: 'shopEggStatus', element: document.querySelector('.shop-egg') },
+        { key: 'lessonsEggStatus', element: document.querySelector('.lessons-egg') },
+        { key: 'contactEggStatus', element: document.querySelector('.contact-egg') },
+        { key: 'listenEggStatus', element: document.querySelector('.listen-egg') },
+        { key: 'watchEggStatus', element: document.querySelector('.watch-egg') }
+    ];
+
+    // Filter unlocked eggs and get their order
+    const unlockedEggs = eggs.filter(egg => {
+        const val = sessionStorage.getItem(egg.key);
+        if (val) {
+            egg.order = parseInt(val);
+            return true;
+        }
+        return false;
+    });
+
+    // Sort by order (1, 2, 3...)
+    unlockedEggs.sort((a, b) => a.order - b.order);
+
+    // Assign Slots
+    unlockedEggs.forEach((egg, index) => {
+        if (egg.element) {
+            const slotFn = index + 1; // 1-based slot
+            egg.element.style.display = 'block';
+            egg.element.classList.add(`egg-slot-${slotFn}`);
+            // console.log(`Assigned ${egg.key} (Order ${egg.order}) to Slot ${slotFn}`);
+        }
+    });
+});
+
+// Helper to Unlock Eggs
+function unlockEgg(key) {
+    if (!sessionStorage.getItem(key)) {
+        let count = parseInt(sessionStorage.getItem('eggUnlockCounter') || '0') + 1;
+        sessionStorage.setItem('eggUnlockCounter', count);
+        sessionStorage.setItem(key, count);
+        console.log(`${key} Unlocked! Order: ${count}`);
+    }
+}

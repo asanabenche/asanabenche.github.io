@@ -158,12 +158,14 @@ img {
     top: 75.45%;
     left: 15.5%;
     width: 7.5%;
+    z-index: 3;
 }
 
 .shop-btn {
     top: 62.6%;
     left: 33.5%;
     width: 9.2%;
+    z-index: 3;
 }
 
 .shows-btn {
@@ -171,12 +173,14 @@ img {
     left: 76%;
     width: 20%;
     rotate: 15.6deg;
+    z-index: 3;
 }
 
 .lessons-btn {
     top: 47.3%;
     left: 16.3%;
     width: 9.8%;
+    z-index: 3;
 }
 
 .contact-btn {
@@ -247,6 +251,80 @@ img {
 .contact-corner:hover~.cardinal-head {
     transform: translate(-130%, -50%);
 }
+
+/* Basket */
+.basket-top {
+    position: absolute;
+    top: 73%;
+    left: 52%;
+    width: 13%;
+    z-index: 1;
+    display: block;
+    rotate: -20deg;
+}
+
+.basket-bottom {
+    position: absolute;
+    top: 73%;
+    left: 52%;
+    width: 13%;
+    z-index: 4;
+    display: block;
+    rotate: -20deg;
+}
+
+/* --- EASTER EGGS (HOME) --- */
+
+.egg {
+    position: absolute;
+    width: 3.5%;
+    display: none;
+    /* Hidden by default */
+}
+
+/* Slot 1 (Old Shop Position) */
+.egg-slot-1 {
+    top: 80%;
+    left: 58%;
+    z-index: 2;
+    transform: translateX(-50%);
+    rotate: -20deg;
+}
+
+/* Slot 2 (Old Lessons Position) */
+.egg-slot-2 {
+    top: 82%;
+    left: 55%;
+    z-index: 3;
+    rotate: -30deg;
+}
+
+/* Slot 3 (Old Contact Position) */
+.egg-slot-3 {
+    top: 81%;
+    left: 58.5%;
+    z-index: 3;
+    rotate: -10deg;
+}
+
+/* Slot 4 (Old Listen Position) */
+.egg-slot-4 {
+    top: 84%;
+    left: 54%;
+    z-index: 4;
+    rotate: -45deg;
+}
+
+/* Slot 5 (Old Watch Position) */
+.egg-slot-5 {
+    top: 81.2%;
+    left: 60.6%;
+    z-index: 4;
+    rotate: 5deg;
+}
+
+/* Override display for active eggs handled by JS, or just use JS to show them */
+
 
 
 /* --- LESSONS PAGE --- */
@@ -562,6 +640,10 @@ img {
     z-index: 2;
 }
 
+
+
+
+
 .cardinal-head-contact {
     position: absolute;
     top: 62%;
@@ -569,7 +651,7 @@ img {
     width: 10%;
     transform: translate(-50%, -50%) rotate(-45deg);
     transform-origin: bottom center;
-    transition: transform 0.1s;
+    transition: transform 0.5s ease-out;
     z-index: 1;
 }
 
@@ -617,39 +699,28 @@ img {
 }
 
 /* Talking Animation (Slide Down-Left, Shake, Return) */
-@keyframes talk-bob {
+/* TALKING LOOP: Child Image Bobbing (Relative) */
+@keyframes talk-bob-child {
     0% {
-        transform: translate(-50%, -50%) rotate(-55deg);
-    }
-
-    20% {
-        /* Slide Down and Left */
-        transform: translate(-100%, +27%) rotate(-55deg);
-    }
-
-    30% {
-        /* Shake 1 */
-        transform: translate(-100%, +27%) rotate(-60deg);
-    }
-
-    50% {
-        /* Shake 2 */
-        transform: translate(-100%, +27%) rotate(-55deg);
-    }
-
-    70% {
-        /* Shake 3 */
-        transform: translate(-100%, +27%) rotate(-60deg);
+        transform: rotate(0deg);
     }
 
     100% {
-        /* Return */
-        transform: translate(-50%, -50%) rotate(-55deg);
+        transform: rotate(-5deg);
     }
 }
 
 .talking {
-    animation: talk-bob 2.0s ease 1;
+    display: block;
+    /* 1. Move to the "OUT" position (Transition handled by base class) */
+    transform: translate(-100%, +27%) rotate(-55deg);
+    /* NO animation on parent to avoid conflict with transition */
+}
+
+.talking img {
+    /* 2. Child image handles the bobbing */
+    /* Add delay (0.5s) to wait for slide-out to finish */
+    animation: talk-bob-child 0.2s ease-in-out 0.5s infinite alternate;
 }
 
 /* Physics Apple */
@@ -832,6 +903,7 @@ img {
     left: 82%;
     width: 4%;
     z-index: 2;
+    z-index: 2;
     transition: transform 4s ease;
 }
 
@@ -841,7 +913,7 @@ img {
     left: 95%;
     width: 10%;
     z-index: 2;
-    display: block;
+    display: none;
     transition: transform 8s ease;
 }
 
@@ -863,7 +935,7 @@ img {
     left: 95%;
     width: 20%;
     z-index: 2;
-    display: block;
+    display: none;
     transition: transform 8s ease;
 }
 
@@ -960,4 +1032,64 @@ img {
 
 .active-instrument img {
     animation: pulse-brightness 2s infinite ease-in-out;
+}
+
+
+
+/* Dynamic Popup in Listening Room */
+/* Dynamic Popup in Listening Room */
+.dynamic-popup {
+    position: absolute;
+    top: 55%;
+    left: 56%;
+    width: 12%;
+    /* decreased further (was 20%) */
+    transform: scale(0);
+    /* Start scaled down */
+    transform-origin: bottom left;
+    /* Grow from bottom left */
+    z-index: 10;
+    pointer-events: none;
+}
+
+.popup-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Animation Class */
+.popup-animate {
+    animation: popup-grow-shrink 2.0s forwards ease-in-out;
+    /* Reduced to 2s */
+}
+
+@keyframes popup-grow-shrink {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    20% {
+        /* Overshoot to 1.1 */
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    30% {
+        /* Settle back to 1.0 */
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    75% {
+        /* Hold */
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
 }
