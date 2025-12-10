@@ -163,7 +163,7 @@ const lessonContent = {
             <div>
                 <p class="teacher-name" style="text-align:left;">Ninaad Raman</p>
                 <img src="images/Lessons/Ninaad.png" alt="Ninaad Headshot" style="width:150px;height:150px;float:left;margin-right:15px;margin-bottom:10px;">
-                <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and developing piano and guitar skills in others around his community.</p>
+                <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and community with an emphasis on a fun and supportive learning environment.</p>
                 <p class="teacher-name" style="text-align:left;">Anderson Jno Baptiste</p>
                 <img src="images/Lessons/Andy.png" alt="Anderson Headshot" style="width:150px;height:150px;float:left;margin-right:15px;margin-bottom:10px;">
                 <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and developing piano and guitar skills in others around his community.</p>
@@ -568,8 +568,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastMouseX: 0,
                 lastMouseY: 0,
                 lastTime: 0,
-                velocityTracker: []
+                velocityTracker: [],
+                thrownFromLeft: false
             };
+
+            // Recovery Click Handler
+            const basketBtn = document.querySelector('.basket-bottom');
+            if (basketBtn) {
+                basketBtn.addEventListener('click', (e) => {
+                    if (basketBtn.classList.contains('basket-recoverable')) {
+                        e.stopPropagation(); // prevent other clicks
+                        state.vy = -20; // Pop Up
+                        state.vx = (Math.random() - 0.5) * 20; // Random Side
+                        state.y -= 20; // Lift up
+                        state.angularVelocity = (Math.random() - 0.5) * 0.5;
+
+                        basketBtn.classList.remove('basket-recoverable');
+                        console.log("Recovered Apple");
+                    }
+                });
+            }
 
             // Constants
             const GRAVITY = 0.5;
@@ -628,6 +646,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (state.isDragging) {
                     state.isDragging = false;
 
+                    // Check Throw Origin (Left Half)
+                    state.thrownFromLeft = (state.lastMouseX < (window.innerWidth / 2));
+
                     // Calculate final release velocity from tracker
                     const now = performance.now();
                     // Filter again to be sure
@@ -658,6 +679,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!state.isDragging) {
                     // Apply Forces
                     state.vy += GRAVITY;
+
+                    // Check for Basket Success (Debug)
+                    const basketBottom = document.querySelector('.basket-bottom');
+                    const eggCount = parseInt(sessionStorage.getItem('eggUnlockCounter') || '0');
+
+                    if (basketBottom) {
+                        const appleRect = apple.getBoundingClientRect();
+                        const basketRect = basketBottom.getBoundingClientRect();
+
+                        // Simple AABB Intersection
+                        if (appleRect.left < basketRect.right &&
+                            appleRect.right > basketRect.left &&
+                            appleRect.top < basketRect.bottom &&
+                            appleRect.bottom > basketRect.top) {
+
+                            // Check if apple is "behind" (visually covered)
+                            if (!apple.dataset.basketEnterTime) {
+                                // Start Timer
+                                apple.dataset.basketEnterTime = Date.now();
+                            } else {
+                                // Check Elapsed Time
+                                const elapsed = Date.now() - parseInt(apple.dataset.basketEnterTime);
+                                if (elapsed > 3000) {
+                                    // Success! (Must be thrown from left AND 5 eggs collected)
+                                    if (!apple.dataset.successTriggered && state.thrownFromLeft && eggCount >= 5) {
+                                        alert("Success! (Debug)");
+                                        apple.dataset.successTriggered = "true";
+                                    }
+                                }
+                            }
+
+                            // Enable Recovery Mode (Visual)
+                            if (!basketBottom.classList.contains('basket-recoverable')) {
+                                basketBottom.classList.add('basket-recoverable');
+                            }
+                        } else {
+                            // Reset Timer if leaves area
+                            delete apple.dataset.basketEnterTime;
+
+                            // Disable Recovery Mode
+                            basketBottom.classList.remove('basket-recoverable');
+                        }
+                    } else {
+                        // Reset if basket closes
+                        delete apple.dataset.basketEnterTime;
+                        apple.dataset.successTriggered = "";
+                        // Disable Recovery Mode
+                        if (basketBottom) basketBottom.classList.remove('basket-recoverable');
+                    }
                     state.vx *= FRICTION;
                     state.vy *= FRICTION;
 
@@ -1134,6 +1204,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // console.log(`Assigned ${egg.key} (Order ${egg.order}) to Slot ${slotFn}`);
         }
     });
+    // Check for Basket Update (5 Eggs)
+    updateBasketState();
 });
 
 // Helper to Unlock Eggs
@@ -1143,5 +1215,16 @@ function unlockEgg(key) {
         sessionStorage.setItem('eggUnlockCounter', count);
         sessionStorage.setItem(key, count);
         console.log(`${key} Unlocked! Order: ${count}`);
+
+        // Check if we hit 5
+        updateBasketState();
+    }
+}
+
+// Function to check egg count and update basket z-index
+function updateBasketState() {
+    const count = parseInt(sessionStorage.getItem('eggUnlockCounter') || '0');
+    if (count >= 5) {
+        console.log("All 5 Eggs Collected! (Ready for Success Trigger)");
     }
 }

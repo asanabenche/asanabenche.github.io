@@ -268,9 +268,89 @@ img {
     top: 73%;
     left: 52%;
     width: 13%;
-    z-index: 4;
+    /* z-index: 1001; Always on top now */
+    z-index: 1001;
     display: block;
     rotate: -20deg;
+}
+
+.basket-recoverable {
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.basket-recoverable:hover {
+    filter: brightness(1.2);
+    /* No scale transform as requested */
+}
+
+/* Physics Debug Rectangles */
+.debug-rect {
+    position: absolute;
+    /* Red background removed for production */
+    background-color: transparent;
+    z-index: 100;
+    /* Visible on top */
+}
+
+/* Left Wall */
+.basket-bound-1 {
+    top: 88.5%;
+    left: 55.5%;
+    width: 1%;
+    height: 5%;
+    transform: rotate(-30deg);
+}
+
+/* Bottom */
+.basket-bound-2 {
+    top: 90%;
+    left: 57%;
+    width: 8%;
+    height: 2%;
+    transform: rotate(-20deg);
+}
+
+/* Right Wall */
+.basket-bound-3 {
+    top: 85%;
+    left: 64%;
+    width: 1%;
+    height: 5%;
+    transform: rotate(-10deg);
+}
+
+/* Shows Sign Boundary */
+.shows-bound {
+    top: 78%;
+    left: 75.5%;
+    width: 18%;
+    height: 16%;
+    /* Estimated height */
+    transform: rotate(20deg) translate(-50%, -50%);
+    /* Match overlay positioning logic */
+    transform-origin: center center;
+}
+
+.shows-bound-top {
+    top: 69.8%;
+    left: 81%;
+    width: 15%;
+    /* Longer */
+    height: 5%;
+    /* Skinnier */
+    transform: rotate(17deg) translate(-50%, -50%);
+    /* Same rotation */
+    transform-origin: center center;
+}
+
+.shows-bound-corner {
+    top: 65.2%;
+    left: 73%;
+    width: 3%;
+    height: 5%;
+    transform: rotate(12deg) translate(-50%, -50%);
+    transform-origin: center center;
 }
 
 /* --- EASTER EGGS (HOME) --- */
@@ -731,7 +811,7 @@ img {
     top: 90%;
     /* Start somewhere visible */
     left: 90%;
-    width: 5%;
+    width: 3.5%;
     height: auto;
     z-index: 1000;
     cursor: grab;
