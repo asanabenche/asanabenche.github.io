@@ -240,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const skaterBtn = document.querySelector('.chair-skater-btn');
     const skaterBehind = document.querySelector('.skater-behind');
     let hoverStartTime = 0;
+    let animationTriggered = false; // Prevent double clicks
 
     if (skaterBtn && skaterBehind) {
         // Track when hover starts
@@ -253,8 +254,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         skaterBtn.addEventListener('click', () => {
-            // Check if hovered for at least 4 seconds (4000ms)
-            if (hoverStartTime > 0 && (Date.now() - hoverStartTime >= 4000)) {
+            // Check if hovered for at least 4 seconds (4000ms) AND not already triggered
+            if (!animationTriggered && hoverStartTime > 0 && (Date.now() - hoverStartTime >= 4000)) {
+                animationTriggered = true;
                 // Trigger falling animation
                 skaterBehind.classList.add('falling');
 
