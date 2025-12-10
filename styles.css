@@ -92,6 +92,11 @@ img {
     min-height: 100vh;
 }
 
+.mobile-bg-img {
+    display: none;
+    /* Hide on desktop */
+}
+
 .exit-btn {
     position: absolute;
     width: 10%;
@@ -1269,18 +1274,22 @@ img {
 
     /* Mobile Background */
     .lessons-wrapper {
-        background-image: url('images/Lessons/lessonsBG_mobile.jpeg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
+        /* background-image: url('images/Lessons/lessonsBG_mobile.jpeg'); Removed favor of shim */
+        background: none;
         width: 100vw;
-        width: 100vw;
-        min-height: 100dvh;
         height: auto;
+        /* Height defined by image shim */
+        min-height: 0;
         position: relative;
         /* Enable absolute positioning for children */
         display: block;
         /* Remove flex column */
+    }
+
+    .mobile-bg-img {
+        display: block;
+        width: 100%;
+        height: auto;
     }
 
     /* Re-flow Chalk Buttons */
@@ -1463,13 +1472,11 @@ img {
 
     /* Mobile Background */
     .contact-wrapper {
-        background-image: url('images/Contact/contactBG_mobile.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
+        /* background-image: url('images/Contact/contactBG_mobile.png'); Removed favor of shim */
+        background: none;
         width: 100vw;
-        min-height: 100dvh;
         height: auto;
+        min-height: 0;
         position: relative;
     }
 
