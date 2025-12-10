@@ -1196,10 +1196,12 @@ img {
     .mobile-view {
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
+        /* Start from top to allow scrolling */
         align-items: center;
         width: 100vw;
         height: 100vh;
+        /* Using height 100vh + overflow auto creates scrollable container */
         background-image: url('images/Home/homeBG_mobile.png');
         background-size: cover;
         background-position: center;
@@ -1208,35 +1210,39 @@ img {
         font-family: 'HeaderFont', sans-serif;
         text-align: center;
         position: relative;
-        /* Ensure absolute children position correctly */
-        overflow: hidden;
-        /* Prevent scroll if post goes off */
+        overflow-y: auto;
+        /* Enable scroll */
+        -webkit-overflow-scrolling: touch;
+        /* Smooth scroll on iOS */
     }
 
     .mobile-post {
         position: absolute;
-        top: 52%;
-        /* Adjusted up again */
+        top: 10%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translateX(-50%);
         width: 15%;
-        /* Thinner post */
-        height: 100%;
+        min-height: 100%;
+        /* Cover entire scrollable area */
         z-index: 1;
     }
 
     .mobile-menu {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 0px;
         z-index: 2;
-        position: absolute;
-        top: 50%;
-        /* Adjusted up again */
-        left: 50%;
-        transform: translate(-50%, -50%);
+        position: relative;
+        /* In flow */
+        top: auto;
+        left: auto;
+        transform: none;
         width: 100%;
         align-items: center;
+        margin-top: 15vh;
+        /* Position it visually where we want (roughly 15% down + header space) */
+        padding-bottom: 50px;
+        /* Extra space at bottom */
     }
 
     .mobile-menu h1 {
@@ -1359,7 +1365,7 @@ img {
     }
 
     .mobile-btn-img {
-        width: 40%;
+        width: 60%;
         /* Increased from 30% */
         height: auto;
         display: block;
@@ -1368,8 +1374,8 @@ img {
     }
 
     .mobile-contact-btn {
-        font-size: 2em;
-        color: white;
+        font-size: 3em;
+        color: rgb(255, 128, 17);
         text-decoration: none;
         padding: 10px 20px;
         /* Reduced padding */

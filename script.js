@@ -268,7 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     triggerSecretAnimation();
                 }, 500);
             } else {
-                console.log("Another Egg");
+                const duration = hoverStartTime > 0 ? Date.now() - hoverStartTime : 0;
+                console.log(`Click ignored. Hover duration: ${duration}ms (Required: 4000ms). Already Triggered: ${animationTriggered}`);
             }
         });
     }
@@ -295,31 +296,43 @@ function triggerSecretAnimation() {
         const skaterAudio = new Audio('audioFiles/watchAudio/skaterAnimationAudio.wav');
         skaterAudio.play().catch(err => console.log('Skater audio blocked:', err));
 
+        console.log("Animation Triggered: Starting Skater and Police Car sequence.");
+
         // Start movement for skater (Delayed 0.2s)
         setTimeout(() => {
-            skaterFlatDiv.style.display = 'block';
-            // Allow browser to render the block state before transitioning
-            requestAnimationFrame(() => {
+            if (skaterFlatDiv) {
+                console.log("Skater: Making visible and moving.");
+                skaterFlatDiv.style.display = 'block';
+
+                // FORCE REFLOW: Critical for Chrome/Edge to register the start position
+                void skaterFlatDiv.offsetWidth;
+
                 skaterFlatDiv.style.transform = "translate(-1400%, 0%)";
-            });
-        }, 200);
+            } else {
+                console.error("Skater div not found!");
+            }
+        }, 300);
 
         // Start movement for police car with a delay
-        // Start movement for police car with a delay
         if (policeCarDiv) {
+            console.log("Police Car: Found element, scheduling run.");
             setTimeout(() => {
+                console.log("Police Car: Making visible and moving.");
                 policeCarDiv.style.display = 'block';
-                // Allow browser to render the block state
-                requestAnimationFrame(() => {
-                    policeCarDiv.style.transform = "translate(-1200%, 0%)";
-                });
+
+                // FORCE REFLOW: Critical for Chrome/Edge
+                void policeCarDiv.offsetWidth;
+
+                policeCarDiv.style.transform = "translate(-1200%, 0%)";
 
                 // Trigger wheelie animation
                 const policeCarImg = policeCarDiv.querySelector('img');
                 if (policeCarImg) {
                     policeCarImg.classList.add('wheelie-anim');
                 }
-            }, 2000); // 0.5s delay to follow
+            }, 1900); // 0.5s delay to follow
+        } else {
+            console.error("Police Car div not found!");
         }
 
         // Trick Sequence
