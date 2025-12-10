@@ -171,7 +171,7 @@ const lessonContent = {
             <div>
                 <p class="teacher-name" style="text-align:right;">Jacob Winthrop</p>
                 <img src="images/Lessons/Jacob.png" alt="Jacob Headshot" style="width:150px;height:150px;float:right;margin-left:15px;margin-bottom:10px;">
-                <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and developing piano and guitar skills in others around his community.</p>
+                <p>Jacob is a guitar player and drummer who graduated with a degree in professional music from Berklee College of Music, and has played for 12 years. His guitar teaching experience ranges from local kids in Los Angeles to full classes of adults in Boston and now he wants to teach you! He knows that every student is different and therefore every lesson should be approached differently. He loves music theory and uses it to help teach you how to not only be a great guitar player or drummer, but also a musician capable of self-teaching. Above all he wants you to believe in yourself and have fun! Music is all about fun!</p>
                 <p class="teacher-name" style="text-align:right;">Al Nadel</p>
                 <img src="images/Lessons/Al.png" alt="Al Headshot" style="width:150px;height:150px;float:right;margin-left:15px;margin-bottom:10px;">
                 <p>Raised in classical and choral traditions, Ninaad spent 15 years honing his skills on the piano and voice until beginning his studies at The Berklee College of Music. There, he developed an advanced understanding of music theory and composition as well as audio engineering through his double major in Film Scoring and Music Production/Engineering. During this time he picked up the Bass Guitar and developed a love for Funk and Jazz styles. He spent his life both as a student and teacher, mentoring younger students in his choir and developing piano and guitar skills in others around his community.</p>
@@ -364,6 +364,20 @@ window.addEventListener('load', () => {
         setTimeout(() => {
             transitionEl.classList.add('hidden');
         }, 500); // Wait 0.5s before revealing to ensure rendering
+    }
+});
+
+// Fix for Back-Forward Cache (bfcache)
+window.addEventListener('pageshow', (event) => {
+    // If the page is restored from the bfcache
+    if (event.persisted) {
+        const transitionEl = document.querySelector('.page-transition');
+        if (transitionEl) {
+            // Re-run the fade-in logic
+            setTimeout(() => {
+                transitionEl.classList.add('hidden');
+            }, 500); // Maintain same timing as load
+        }
     }
 });
 
