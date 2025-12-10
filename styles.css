@@ -1200,10 +1200,10 @@ img {
         /* Start from top to allow scrolling */
         align-items: center;
         width: 100vw;
-        height: 100vh;
-        height: 100dvh;
-        /* Fallback + Dynamic Viewport Height */
-        /* Using height 100vh + overflow auto creates scrollable container */
+        min-height: 100dvh;
+        /* Allow growing */
+        height: auto;
+        /* Remove internal scrolling, let body handle it */
         background-image: url('images/Home/homeBG_mobile.png');
         background-size: cover;
         background-position: center;
@@ -1212,7 +1212,7 @@ img {
         font-family: 'HeaderFont', sans-serif;
         text-align: center;
         position: relative;
-        overflow-y: auto;
+        overflow-y: visible;
         /* Enable scroll */
         -webkit-overflow-scrolling: touch;
         /* Smooth scroll on iOS */
@@ -1221,11 +1221,11 @@ img {
     .mobile-post {
         position: absolute;
         top: 10%;
+        height: 90%;
         left: 50%;
         transform: translateX(-50%);
         width: 15%;
-        min-height: 100%;
-        /* Cover entire scrollable area */
+        object-fit: fill;
         z-index: 1;
     }
 
