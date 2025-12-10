@@ -1276,7 +1276,10 @@ img {
     .lessons-wrapper {
         /* background-image: url('images/Lessons/lessonsBG_mobile.jpeg'); Removed favor of shim */
         background: none;
-        width: 100vw;
+        width: 100%;
+        /* Fix to page bounds */
+        overflow-x: hidden;
+        /* Prevent horizontal scroll */
         height: auto;
         /* Height defined by image shim */
         min-height: 0;
@@ -1474,7 +1477,10 @@ img {
     .contact-wrapper {
         /* background-image: url('images/Contact/contactBG_mobile.png'); Removed favor of shim */
         background: none;
-        width: 100vw;
+        width: 100%;
+        /* Fix to page bounds */
+        overflow-x: hidden;
+        /* Prevent horizontal scroll */
         height: auto;
         min-height: 0;
         position: relative;
