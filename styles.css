@@ -1201,6 +1201,8 @@ img {
         align-items: center;
         width: 100vw;
         height: 100vh;
+        height: 100dvh;
+        /* Fallback + Dynamic Viewport Height */
         /* Using height 100vh + overflow auto creates scrollable container */
         background-image: url('images/Home/homeBG_mobile.png');
         background-size: cover;
@@ -1241,7 +1243,7 @@ img {
         align-items: center;
         margin-top: 15vh;
         /* Position it visually where we want (roughly 15% down + header space) */
-        padding-bottom: 50px;
+        padding-bottom: 150px;
         /* Extra space at bottom */
     }
 
