@@ -1,5 +1,43 @@
 // Audio Player Logic
 
+// --- GLOBAL AUDIO UNLOCK ---
+// Attempts to unlock audio context on the first user interaction.
+let audioUnlocked = false;
+
+function unlockAudio() {
+    if (audioUnlocked) return;
+
+    // Create a temporary AudioContext to unlock the engine
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0; // Silent
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(0);
+        osc.stop(0.001);
+
+        // Also try playing a dummy audio element for good measure (some iOS versions)
+        const silentAudio = new Audio();
+        silentAudio.play().catch(() => { }); // Expected to fail if not ready, but tries to prime
+    }
+
+    audioUnlocked = true;
+
+    // Remove listeners once unlocked
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+    document.removeEventListener('keydown', unlockAudio);
+}
+
+// Attach to common interaction events
+document.addEventListener('click', unlockAudio);
+document.addEventListener('touchstart', unlockAudio);
+document.addEventListener('keydown', unlockAudio);
+
+
 // Playlist of songs
 const playlist = [
     "audioFiles/BIRD MUSIC MP3s/01 Boxed Out.mp3",
@@ -32,7 +70,27 @@ if (startStopBtn && skipBtn) {
             audio.play().catch(error => console.error("Playback failed:", error));
         }
         isPlaying = !isPlaying;
-        // Optional: Update button visual state here if needed
+
+        // Update Visuals
+        updateMusicVisuals(isPlaying);
+
+        // Toggle Pulse Animation on Button
+        if (isPlaying) {
+            startStopBtn.classList.add('active-instrument');
+        } else {
+            startStopBtn.classList.remove('active-instrument');
+        }
+    }
+
+    function updateMusicVisuals(playing) {
+        const anims = document.querySelectorAll('.music-anim');
+        anims.forEach(anim => {
+            if (playing) {
+                anim.classList.add('visible');
+            } else {
+                anim.classList.remove('visible');
+            }
+        });
     }
 
     // Function to play next song
@@ -45,6 +103,7 @@ if (startStopBtn && skipBtn) {
         } else {
             audio.play().catch(error => console.error("Playback failed:", error));
             isPlaying = true;
+            updateMusicVisuals(true);
         }
     }
 
@@ -279,6 +338,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize Flower 4
         setupFlower('.flower-4', '.flower-4-static', '.flower-4-anim', 'images/Shop/Flower4_Anim.gif');
+
+        // Global touch handler for swiping across flowers
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 0) return;
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (!target) return;
+
+            const flower = target.closest('.shop-flower');
+            if (flower) {
+                // Synthetically trigger the mouseenter logic
+                // Using dispatchEvent implies the listener was added to the element (which it was in setupFlower)
+                // We use a custom flag or just rely on the existing 'isAnimating' check in the listener to prevent spam
+                flower.dispatchEvent(new Event('mouseenter'));
+            }
+        }, { passive: true }); // passive true allows scroll elsewhere, but touch-action: none on container handles the local locking
     }
     initFlowerAnimation(); // Call the function to initialize the animation
 
@@ -470,21 +546,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- GENERIC AUDIO ON HOVER ---
-    // Selects any element with a 'data-audio' attribute and plays it on hover.
+    // --- GENERIC AUDIO ON HOVER/INTERACTION ---
+    // Selects any element with a 'data-audio' attribute and plays it on hover or click.
     const audioElements = document.querySelectorAll('[data-audio]');
 
     audioElements.forEach(el => {
-        el.addEventListener('mouseenter', () => {
+        let isPlayingLocal = false; // Simple debounce
+
+        const playSound = () => {
+            // If we are already "playing" (debouncing rapid fires), skip
+            if (isPlayingLocal) return;
+
             const audioSrc = el.getAttribute('data-audio');
             if (audioSrc) {
                 const audio = new Audio(audioSrc);
+
+                // Flag as playing to prevent double-triggers (e.g., touch + click)
+                isPlayingLocal = true;
+
                 audio.play().catch(err => {
                     // Benign error: Audio play was prevented (e.g., no user interaction yet)
                     console.log('Audio playback prevented:', err);
                 });
+
+                // Reset flag quickly so it can be played again
+                setTimeout(() => {
+                    isPlayingLocal = false;
+                }, 100); // 100ms debounce
             }
-        });
+        };
+
+        // Desktop Hover
+        el.addEventListener('mouseenter', playSound);
+
+        // Mobile/Tablet Touch
+        el.addEventListener('touchstart', (e) => {
+            // e.preventDefault(); // Do not prevent default to allow scrolling if needed, but here we want sound.
+            // Actually, if we prevent default, we might block scrolling. 
+            // Better to just play sound.
+            playSound();
+        }, { passive: true });
+
+        // Click (Backup for both)
+        el.addEventListener('click', playSound);
     });
 
     // --- FLOWER INTERACTION (Shop Page) ---

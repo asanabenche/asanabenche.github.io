@@ -576,7 +576,43 @@ img {
     left: 66%;
     width: 9%;
     z-index: 5;
+
     /* Ensure it's clickable */
+}
+
+/* Music Animations */
+.music-anim {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Bouncy grow effect */
+}
+
+.music-anim.visible {
+    transform: scale(1);
+}
+
+.purple-sound {
+    top: 56%;
+    left: 63%;
+    width: 4%;
+    rotate: 15deg;
+}
+
+.yellow-sound {
+    top: 48.6%;
+    left: 66%;
+    width: 3%;
+    rotate: 15deg;
+}
+
+.red-sound {
+    top: 31.8%;
+    left: 58.7%;
+    width: 3%;
+    rotate: 20deg;
 }
 
 
@@ -697,6 +733,10 @@ img {
     transform: rotate(-40deg) scale(1);
 }
 
+.flower-4:hover {
+    transform: rotate(5deg) scale(1);
+}
+
 /* Flower 2 */
 .flower-2 {
     position: absolute;
@@ -775,8 +815,24 @@ img {
     z-index: 3;
 }
 
-.flower-4:hover {
-    transform: rotate(5deg) scale(1);
+
+
+.flower-cluster {
+    position: absolute;
+    top: 60%;
+    left: 75%;
+    width: 25%;
+    height: 40%;
+    z-index: 1;
+    /* Below flowers (2) */
+    touch-action: none;
+    /* Disable scroll in this zone */
+    /* background: rgba(255, 0, 0, 0.2); Debugging */
+}
+
+.shop-flower {
+    touch-action: none;
+    /* Disable scroll on flowers themselves */
 }
 
 
