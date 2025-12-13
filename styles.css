@@ -43,6 +43,8 @@ img {
     width: fit-content;
     height: fit-content;
     line-height: 0;
+    overflow: hidden;
+    /* Prevent white space overflow from absolute elements */
 }
 
 .overlay-link,
@@ -629,6 +631,44 @@ img {
     width: 17.2%;
 }
 
+.shop-item1-btn {
+    top: 16%;
+    left: 54.5%;
+    width: 13%;
+    z-index: 3;
+}
+
+.shop-item2-btn {
+    top: 14%;
+    left: 41%;
+    width: 12%;
+    z-index: 3;
+}
+
+.shop-item3-btn {
+    top: 16%;
+    /* Placeholder position */
+    left: 69%;
+    width: 12%;
+    z-index: 3;
+}
+
+.shop-item1-btn:hover,
+.shop-item2-btn:hover,
+.shop-item3-btn:hover {
+    transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
+}
+
+.shop-keep {
+    position: absolute;
+    top: 21.5%;
+    left: 55%;
+    width: 20%;
+    z-index: 4;
+    pointer-events: none;
+    /* specific request was just to add image, assuming non-interactive for now */
+}
+
 /* Flower 1 */
 .flower-1 {
     position: absolute;
@@ -754,36 +794,77 @@ img {
 .youtube-btn {
     top: 43%;
     left: 26%;
-    width: 10%;
+    width: 8%;
     z-index: 5;
 }
 
 .patreon-btn {
-    top: 60%;
+    top: 55%;
     left: 26%;
-    width: 10%;
+    width: 7%;
     z-index: 5;
 }
 
 .instagram-btn {
-    top: 50%;
+    top: 43%;
     left: 40%;
-    width: 9%;
+    width: 6%;
     z-index: 5;
 }
 
 .tiktok-btn {
-    top: 68%;
-    left: 45%;
-    width: 10%;
+    top: 55%;
+    left: 40%;
+    width: 6%;
     z-index: 5;
 }
 
 .email-btn {
-    top: 77%;
-    left: 30%;
-    width: 10%;
+    top: 67%;
+    left: 32%;
+    width: 8%;
     z-index: 5;
+}
+
+.contact-info-box {
+    position: absolute;
+    top: 80%;
+    left: 30%;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+    /* On top of email button if it's there */
+    border: 3px solid #f6e45c;
+    /* Bright yellow border */
+    background-color: rgba(62, 39, 35, 0.95);
+    /* More opaque */
+    color: #fff;
+    padding: 1.5%;
+    /* Scalable padded */
+    border-radius: 12px;
+    font-family: 'BodyFont', sans-serif;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+    width: 18%;
+    /* Scalable width */
+    min-width: 0;
+    /* Remove fixed min-width */
+    line-height: 1.6;
+    /* Improve readability */
+}
+
+.contact-info-box p {
+    margin: 3% 0;
+    /* Scalable margin */
+    font-size: 1.1vw;
+    /* Scalable font */
+    letter-spacing: 0.5px;
+}
+
+@media (max-aspect-ratio: 4205/3310) {
+    .contact-info-box p {
+        font-size: 1.4vh;
+        /* Maintain size relative to height-locked background */
+    }
 }
 
 /* Talking Animation (Slide Down-Left, Shake, Return) */
@@ -1527,6 +1608,26 @@ img {
         left: 65%;
         width: 20%;
         transform: translate(-50%, -50%);
+    }
+
+    .contact-info-box {
+        position: absolute;
+        top: 90%;
+        /* Moved up to avoid overflowing bottom */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 85%;
+        font-size: 1.2em;
+        /* Keep readable text on mobile (em is better relative to body than vw here usually, or fixed) */
+        padding: 5%;
+        border-color: rgb(255, 128, 17);
+        border-width: 2px;
+    }
+
+    .contact-info-box p {
+        font-size: 1em;
+        /* Reset/Override the desktop 1.1vw */
+        margin: 10px 0;
     }
 
     .exit-contact {

@@ -639,6 +639,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault(); // Prevent text selection
             });
 
+            // Touch Start
+            apple.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                state.isDragging = true;
+                state.vx = 0;
+                state.vy = 0;
+                state.angularVelocity = 0;
+                state.lastMouseX = touch.pageX;
+                state.lastMouseY = touch.pageY;
+                state.lastTime = performance.now();
+                state.velocityTracker = [{ x: touch.pageX, y: touch.pageY, time: performance.now() }];
+                e.preventDefault(); // Prevent scroll/selection
+            }, { passive: false });
+
             window.addEventListener('mousemove', (e) => {
                 if (state.isDragging) {
                     const now = performance.now();
@@ -671,7 +685,76 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            // Touch Move
+            window.addEventListener('touchmove', (e) => {
+                if (state.isDragging) {
+                    const touch = e.touches[0];
+                    const now = performance.now();
+                    const dt = now - state.lastTime;
+
+                    // Move apple directly (Absolute Position)
+                    state.x = touch.pageX - (apple.offsetWidth / 2);
+                    state.y = touch.pageY - (apple.offsetHeight / 2);
+
+                    // Track position for throw calculation
+                    state.velocityTracker.push({
+                        x: touch.pageX,
+                        y: touch.pageY,
+                        time: now
+                    });
+
+                    // Keep only last 100ms
+                    state.velocityTracker = state.velocityTracker.filter(p => now - p.time < 100);
+
+                    // Calculate throw velocity based on mouse movement speed (Instantaneous for rotation)
+                    if (dt > 0) {
+                        const dx = touch.pageX - state.lastMouseX;
+                        // Spin based on horizontal movement
+                        state.angularVelocity = dx * ROTATION_SENSITIVITY;
+                    }
+
+                    state.lastMouseX = touch.pageX;
+                    state.lastMouseY = touch.pageY;
+                    state.lastTime = now;
+
+                    e.preventDefault(); // Prevent scrolling while dragging
+                }
+            }, { passive: false });
+
             window.addEventListener('mouseup', () => {
+                if (state.isDragging) {
+                    state.isDragging = false;
+
+                    // Check Throw Origin (Left Half)
+                    state.thrownFromLeft = (state.lastMouseX < (window.innerWidth / 2));
+
+                    // Calculate final release velocity from tracker
+                    const now = performance.now();
+                    // Filter again to be sure
+                    const recentPoints = state.velocityTracker.filter(p => now - p.time < 100);
+
+                    if (recentPoints.length > 1) {
+                        const first = recentPoints[0];
+                        const last = recentPoints[recentPoints.length - 1];
+                        const dt = last.time - first.time;
+
+                        if (dt > 0) {
+                            state.vx = ((last.x - first.x) / dt) * THROW_FORCE;
+                            state.vy = ((last.y - first.y) / dt) * THROW_FORCE;
+                        } else {
+                            state.vx = 0;
+                            state.vy = 0;
+                        }
+                    } else {
+                        // Not enough data (stationary hold)
+                        state.vx = 0;
+                        state.vy = 0;
+                    }
+                }
+            });
+
+            // Touch End
+            window.addEventListener('touchend', () => {
                 if (state.isDragging) {
                     state.isDragging = false;
 
