@@ -237,6 +237,51 @@ shakeElements.forEach(element => {
 
 // --- Skater Interaction Logic (Watch Page) ---
 document.addEventListener('DOMContentLoaded', () => {
+    function initFlowerAnimation() {
+        const setupFlower = (containerSel, staticSel, animSel, animSrcBase) => {
+            const container = document.querySelector(containerSel);
+            const staticImg = document.querySelector(staticSel);
+            const animImg = document.querySelector(animSel);
+
+            if (!container || !staticImg || !animImg) return;
+
+            let isAnimating = false;
+
+            container.addEventListener('mouseenter', () => {
+                if (isAnimating) return;
+
+                isAnimating = true;
+
+                // Force reload of GIF
+                animImg.src = `${animSrcBase}?t=${new Date().getTime()}`;
+
+                // Show Anim, Hide Static (visibility toggle to preserve layout)
+                animImg.style.display = 'block';
+                staticImg.style.visibility = 'hidden';
+
+                // Reset after 0.7 seconds
+                setTimeout(() => {
+                    staticImg.style.visibility = 'visible';
+                    animImg.style.display = 'none';
+                    isAnimating = false;
+                }, 700);
+            });
+        };
+
+        // Initialize Flower 1
+        setupFlower('.flower-1', '.flower-1-static', '.flower-1-anim', 'images/Shop/Flower1_Anim.gif');
+
+        // Initialize Flower 2
+        setupFlower('.flower-2', '.flower-2-static', '.flower-2-anim', 'images/Shop/Flower2_Anim.gif');
+
+        // Initialize Flower 3
+        setupFlower('.flower-3', '.flower-3-static', '.flower-3-anim', 'images/Shop/Flower3_Anim.gif');
+
+        // Initialize Flower 4
+        setupFlower('.flower-4', '.flower-4-static', '.flower-4-anim', 'images/Shop/Flower4_Anim.gif');
+    }
+    initFlowerAnimation(); // Call the function to initialize the animation
+
     const skaterBtn = document.querySelector('.chair-skater-btn');
     const skaterBehind = document.querySelector('.skater-behind');
     let hoverStartTime = 0;

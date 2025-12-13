@@ -640,7 +640,7 @@ img {
 
 .shop-item2-btn {
     top: 14%;
-    left: 41%;
+    left: 40.5%;
     width: 12%;
     z-index: 3;
 }
@@ -680,6 +680,19 @@ img {
     transform-origin: center center;
 }
 
+.flower-1-static {
+    width: 100%;
+    /* Inherit parent width logic */
+}
+
+.flower-1-anim {
+    position: absolute;
+    top: 0%;
+    left: -80%;
+    width: 240%;
+    z-index: 3;
+}
+
 .flower-1:hover {
     transform: rotate(-40deg) scale(1);
 }
@@ -699,6 +712,18 @@ img {
     transform: rotate(-20deg) scale(1);
 }
 
+.flower-2-static {
+    width: 100%;
+}
+
+.flower-2-anim {
+    position: absolute;
+    top: -0;
+    left: -25%;
+    width: 150%;
+    z-index: 3;
+}
+
 /* Flower 3 */
 .flower-3 {
     position: absolute;
@@ -711,7 +736,19 @@ img {
 }
 
 .flower-3:hover {
-    transform: rotate(-15deg) scale(1);
+    transform: rotate(-15deg);
+}
+
+.flower-3-static {
+    width: 100%;
+}
+
+.flower-3-anim {
+    position: absolute;
+    top: 0;
+    left: -40%;
+    width: 190%;
+    z-index: 3;
 }
 
 /* Flower 4 */
@@ -724,6 +761,18 @@ img {
     z-index: 2;
     transform: rotate(5deg);
     transform-origin: center center;
+}
+
+.flower-4-static {
+    width: 100%;
+}
+
+.flower-4-anim {
+    position: absolute;
+    top: 0;
+    left: -40%;
+    width: 190%;
+    z-index: 3;
 }
 
 .flower-4:hover {
