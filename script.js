@@ -717,6 +717,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- RECIPE POPUP LOGIC ---
+    const recipeModal = document.getElementById('tacoRecipeModal');
+    const closeRecipeBtn = document.querySelector('.close-recipe');
+
+    if (recipeModal && closeRecipeBtn) {
+        closeRecipeBtn.addEventListener('click', () => {
+            const recipeContent = recipeModal.querySelector('.recipe-content');
+            if (recipeContent) {
+                recipeContent.classList.remove('scale-in');
+                recipeContent.classList.add('scale-out');
+
+                // Wait for animation then hide
+                setTimeout(() => {
+                    recipeModal.style.display = 'none';
+                }, 500);
+            }
+        });
+
+        // Optional: Close on background click
+        recipeModal.addEventListener('click', (e) => {
+            if (e.target === recipeModal) {
+                closeRecipeBtn.click();
+            }
+        });
+    }
+
     // --- PHYSICS APPLE (Home Page) ---
     const apple = document.querySelector('.physics-apple');
     const appleTree = document.querySelector('.apple-tree');
@@ -964,8 +990,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const elapsed = Date.now() - parseInt(apple.dataset.basketEnterTime);
                                 if (elapsed > 3000) {
                                     // Success! (Must be thrown from left AND 5 eggs collected)
+                                    // Debug Conditions
+                                    console.log(`Checking Success: Triggered=${apple.dataset.successTriggered}, ThrownLeft=${state.thrownFromLeft}, EggCount=${eggCount}`);
+
                                     if (!apple.dataset.successTriggered && state.thrownFromLeft && eggCount >= 5) {
-                                        alert("Success! (Debug)");
+                                        // Trigger Taco Truck Animation
+                                        runTacoSequence();
                                         apple.dataset.successTriggered = "true";
                                     }
                                 }
@@ -1006,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const treeBottomAbsolute = treeBounds.bottom + window.scrollY;
 
                     if (state.y > (treeBottomAbsolute - 50)) {
-                        apple.style.zIndex = "15"; // Between Tree (10) and Basket (20)
+                        apple.style.zIndex = "100"; // Above Scroll (30), Below Basket (1001)
                     }
 
                     // Collisions with Document Bounds (Absolute)
@@ -1466,7 +1496,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     // Check for Basket Update (5 Eggs)
+    // Check for Basket Update (5 Eggs)
     updateBasketState();
+
+    // Check Scroll Status on Load
+    const savedScroll = sessionStorage.getItem('scrollUnlocked');
+    const scrollItem = document.querySelector('.scroll-item');
+    if (savedScroll && scrollItem) {
+        scrollItem.style.display = 'block';
+        scrollItem.classList.add('landed'); // Skip animation, go to end state
+
+        // Attach Click Listener
+        scrollItem.onclick = () => {
+            const recipeModal = document.getElementById('tacoRecipeModal');
+            const recipeContent = recipeModal.querySelector('.recipe-content');
+            if (recipeModal && recipeContent) {
+                recipeModal.style.display = 'flex';
+                void recipeModal.offsetWidth;
+                recipeContent.classList.remove('scale-out');
+                recipeContent.classList.add('scale-in');
+            }
+        };
+    }
+
+    // Check Totem Status on Load
+    const isTotem = sessionStorage.getItem('isTotem') === 'true';
+    const titleDiv = document.querySelector('.home-title');
+    const titleImg = titleDiv ? titleDiv.querySelector('img') : null;
+    if (isTotem && titleDiv && titleImg) {
+        titleDiv.classList.add('is-totem');
+        titleImg.src = "images/Home/asanabencheTotem.png";
+    }
 });
 
 // Helper to Unlock Eggs
@@ -1488,4 +1548,202 @@ function updateBasketState() {
     if (count >= 5) {
         console.log("All 5 Eggs Collected! (Ready for Success Trigger)");
     }
+}
+
+// Preload Taco Assets Loop
+const interval = setInterval(() => {
+    const truck = document.querySelector('.taco-truck-driving');
+    if (truck) {
+        clearInterval(interval);
+        new Image().src = "images/Home/tacoSpeaking.gif";
+        new Image().src = "images/Home/scrollHandoff.png";
+        new Image().src = "images/Home/tacoLaser1.png";
+        new Image().src = "images/Home/tacoLaser2.png";
+        new Image().src = "images/Home/tacoLaser3.png";
+    }
+}, 500);
+
+// Helper for Promisified Timeout
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function runTacoSequence() {
+    const truck = document.querySelector('.taco-truck-driving');
+    const truckImg = document.getElementById('tacoTruckGif');
+    const scroll = document.querySelector('.scroll-item');
+
+    if (!truck || !truckImg || !scroll) {
+        console.error("Taco Truck elements missing!");
+        return;
+    }
+
+    console.log("Starting Taco Sequence...");
+
+    // 1. DRIVE IN
+    // Reset GIF
+    truckImg.src = "images/Home/tacoDriving.gif" + '?t=' + new Date().getTime();
+    truck.style.display = 'block';
+
+    // Check if scroll is already unlocked
+    const scrollUnlocked = sessionStorage.getItem('scrollUnlocked') === 'true';
+
+    // Reset Scroll (Only if NOT unlocked)
+    if (!scrollUnlocked) {
+        scroll.style.display = 'none';
+        scroll.classList.remove('fly-to-spot');
+        scroll.classList.remove('landed');
+    }
+
+    // Safety Force Z-Index - REMOVED to preserve layer order (Truck < Scroll < Apple)
+    // truck.style.zIndex = '10000';
+
+    // Reset Classes
+    truck.className = 'taco-truck-driving'; // Strip toggle classes
+    void truck.offsetWidth; // Force Reflow
+
+    // Trigger Drive In
+    truck.classList.add('drive-in');
+
+    // Play Truck Audio
+    new Audio('audioFiles/homeAudio/truckAudio.wav').play().catch(e => console.log("Audio play failed", e));
+
+    // Wait for drive (4s) + buffer
+    await wait(4000);
+
+    // 2. SPEAKING (4s)
+    console.log("Taco: Speaking");
+    truckImg.src = "images/Home/tacoSpeaking.gif";
+
+    // Play Audio (Speaking)
+    if (!scrollUnlocked) {
+        new Audio('audioFiles/homeAudio/speaking1.wav').play().catch(e => console.log("Audio play failed", e));
+    } else {
+        new Audio('audioFiles/homeAudio/speaking2.wav').play().catch(e => console.log("Audio play failed", e));
+    }
+
+    await wait(4000);
+
+    // 3. SCROLL HANDOFF (3s) - Skip if unlocked
+    if (!scrollUnlocked) {
+        console.log("Taco: Handoff");
+        truckImg.src = "images/Home/scrollHandoff.png";
+
+        // Show Scroll (hidden behind truck or just visible)
+        // Actually, if it's "handoff", maybe it appears now?
+        // User said "Make this image appear when scrollHandoff is active"
+        scroll.style.display = 'block';
+
+        await wait(3000);
+    }
+
+    // 4. REPOSITION (2s move)
+    console.log("Taco: Repositioning");
+
+    // Play Audio (Seems Off)
+    new Audio('audioFiles/homeAudio/seemsOff.wav').play().catch(e => console.log("Audio play failed", e));
+
+    // Animate Scroll (Only if not unlocked)
+    if (!scrollUnlocked) {
+        scroll.classList.add('fly-to-spot');
+        setTimeout(() => {
+            if (scroll) {
+                scroll.classList.add('landed');
+
+                // Add click listener for Recipe (Once)
+                scroll.onclick = () => {
+                    const recipeModal = document.getElementById('tacoRecipeModal');
+                    const recipeContent = recipeModal.querySelector('.recipe-content');
+                    if (recipeModal && recipeContent) {
+                        recipeModal.style.display = 'flex';
+                        // Force Reflow
+                        void recipeModal.offsetWidth;
+                        recipeContent.classList.remove('scale-out');
+                        recipeContent.classList.add('scale-in');
+                    }
+                };
+
+                // Save State
+                sessionStorage.setItem('scrollUnlocked', 'true');
+            }
+        }, 3000);
+    }
+
+    // Switch back to driving gif for movement
+    truckImg.src = "images/Home/tacoDriving.gif";
+    truck.classList.add('drive-reposition');
+    await wait(2000);
+
+    // 5. LASER SEQUENCE
+    console.log("Taco: Laser 1");
+    truckImg.src = "images/Home/tacoLaser1.png";
+    await wait(1000);
+
+    console.log("Taco: Laser 2");
+    truckImg.src = "images/Home/tacoLaser2.png";
+    await wait(1000);
+
+    console.log("Taco: Laser 3");
+
+    // Play Laser Sound
+    new Audio('audioFiles/homeAudio/laserSound.wav').play().catch(e => console.log("Audio play failed", e));
+
+    truckImg.src = "images/Home/tacoLaser3.png";
+
+    // Trigger Title Shake
+    const titleDiv = document.querySelector('.home-title');
+    const titleImg = titleDiv ? titleDiv.querySelector('img') : null;
+
+    // Check current state (from DOM, since sessionStorage might be pending update)
+    const currentIsTotem = titleDiv && titleDiv.classList.contains('is-totem');
+
+    if (titleDiv) {
+        titleDiv.classList.add('title-shake');
+    }
+
+    await wait(1500);
+
+    // Stop Shake & Toggle Image
+    if (titleDiv && titleImg) {
+        titleDiv.classList.remove('title-shake');
+
+        // Play Pop Sound
+        new Audio('audioFiles/homeAudio/popSound.wav').play().catch(e => console.log("Audio play failed", e));
+
+        if (currentIsTotem) {
+            // Switch BACK to Title
+            console.log("Switching to Title");
+
+            // 1. Change Src (keeps small size for now)
+            titleImg.src = "images/Home/asanabencheTitle.png";
+
+            // 2. Wait for ready
+            try { await titleImg.decode(); } catch (e) { }
+
+            // 3. Remove Totem class (Restore large size)
+            titleDiv.classList.remove('is-totem');
+
+            sessionStorage.setItem('isTotem', 'false');
+        } else {
+            // Switch TO Totem
+            console.log("Switching to Totem");
+
+            // 1. Change Src (keeps large size for now)
+            titleImg.src = "images/Home/asanabencheTotem.png";
+
+            // 2. Wait for ready
+            try { await titleImg.decode(); } catch (e) { }
+
+            // 3. Add Totem class (Squash to small size)
+            titleDiv.classList.add('is-totem');
+
+            sessionStorage.setItem('isTotem', 'true');
+        }
+    }
+
+    // 6. EXIT
+    console.log("Taco: Exit");
+    truckImg.src = "images/Home/tacoDriving.gif";
+    truck.classList.add('drive-exit');
+
+    // Wait for exit to clear screen then hide?
+    // Or just leave it off screen.
 }

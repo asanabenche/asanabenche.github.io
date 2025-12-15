@@ -16,8 +16,12 @@
         <div class="bg-wrapper home-wrapper">
             <img src="images/Home/homeBG.png" alt="Home Background" class="background-img home-bg">
 
-            <!-- Navigation Links -->
+            <!-- Title Image -->
+            <div class="home-title">
+                <img src="images/Home/asanabencheTitle.png" alt="Asanabenche Title" class="overlay-img">
+            </div>
 
+            <!-- Navigation Links -->
             <!-- Listen -->
             <a href="listening.html" class="overlay-link listen-btn">
                 <img src="images/Home/listenSign.png" alt="Listen" class="overlay-img">
@@ -112,6 +116,24 @@
             <!-- Basket (Front Layer) -->
             <div class="basket-bottom">
                 <img src="images/Home/basketBot.png" alt="Basket Bottom" class="overlay-img">
+            </div>
+
+            <!-- Taco Truck (Hidden by default) -->
+            <div class="taco-truck-driving" style="display: none;">
+                <img src="images/Home/tacoDriving.gif" alt="Taco Truck" class="overlay-img" id="tacoTruckGif">
+            </div>
+
+            <!-- Scroll Item (Hidden initially) -->
+            <div class="scroll-item" style="display: none;">
+                <img src="images/Home/scroll.png" alt="Scroll" class="overlay-img">
+            </div>
+
+            <!-- Taco Recipe Modal -->
+            <div id="tacoRecipeModal" class="recipe-modal" style="display: none;">
+                <div class="recipe-content">
+                    <span class="close-recipe">&times;</span>
+                    <img src="images/Home/tacoRecipe.png" alt="Taco Recipe">
+                </div>
             </div>
         </div>
     </div>
