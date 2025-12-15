@@ -1279,7 +1279,7 @@ img {
 .contact-info-box {
     position: absolute;
     top: 80%;
-    left: 30%;
+    left: 32%;
     transform: translate(-50%, -50%);
     z-index: 6;
     /* On top of email button if it's there */
@@ -1294,7 +1294,7 @@ img {
     font-family: 'BodyFont', sans-serif;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
-    width: 18%;
+    width: 30%;
     /* Scalable width */
     min-width: 0;
     /* Remove fixed min-width */

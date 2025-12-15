@@ -1640,6 +1640,7 @@ async function runTacoSequence() {
 
     // Play Audio (Seems Off)
     new Audio('audioFiles/homeAudio/seemsOff.wav').play().catch(e => console.log("Audio play failed", e));
+    new Audio('audioFiles/homeAudio/truckWub.wav').play().catch(e => console.log("Audio play failed", e));
 
     // Animate Scroll (Only if not unlocked)
     if (!scrollUnlocked) {
@@ -1741,6 +1742,10 @@ async function runTacoSequence() {
 
     // 6. EXIT
     console.log("Taco: Exit");
+
+    // Play Truck Out Audio
+    new Audio('audioFiles/homeAudio/truckOut.wav').play().catch(e => console.log("Audio play failed", e));
+
     truckImg.src = "images/Home/tacoDriving.gif";
     truck.classList.add('drive-exit');
 
