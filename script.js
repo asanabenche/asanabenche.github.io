@@ -520,20 +520,38 @@ function triggerSecretAnimation() {
 window.addEventListener('load', async () => {
     const transitionEl = document.querySelector('.page-transition');
     if (transitionEl) {
-        // Wait for connection to settle? No, wait for Paint.
-        const bgImg = document.querySelector('.background-img');
-        if (bgImg) {
+        // Determine which background is primary based on view
+        // Note: Generic "background-img" is desktop, "mobile-bg-img" is mobile
+        const isMobile = window.innerWidth <= 768; // Matching CSS breakpoint
+
+        let targetImg = null;
+
+        if (isMobile) {
+            targetImg = document.querySelector('.mobile-bg-img');
+            // If no mobile img found but a generic one exists (and we rely on CSS bg like Home), 
+            // we might not have an IMG to decode. That's okay, we'll fall through.
+            if (!targetImg) {
+                // Double check if Home page mobile view is active (it uses CSS background-image)
+                // If so, we can't easily await decode() without creating a dummy image. 
+                // For now, rely on window.onload + timeout for Home Mobile.
+            }
+        } else {
+            targetImg = document.querySelector('.background-img');
+        }
+
+        if (targetImg) {
             try {
-                await bgImg.decode();
-                console.log("Background decoded and ready to paint.");
+                // Ensure it's fully loaded/decoded before painting
+                await targetImg.decode();
+                console.log("Primary Background decoded.");
             } catch (e) {
-                console.warn("Background decode failed/skipped (possibly missing or zero size)", e);
+                console.warn("Background decode failed/skipped", e);
             }
         }
 
         setTimeout(() => {
             transitionEl.classList.add('hidden');
-        }, 100); // Small buffer after decode
+        }, 100);
     }
 });
 
