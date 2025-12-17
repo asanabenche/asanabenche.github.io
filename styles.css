@@ -25,6 +25,8 @@ body {
     /* Safari */
     user-select: none;
     /* Standard syntax */
+    background-color: black;
+    /* Critical for loading fallback */
 }
 
 /* Disable image dragging */

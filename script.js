@@ -517,12 +517,23 @@ function triggerSecretAnimation() {
     }
 }
 // --- PAGE TRANSITION LOGIC ---
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
     const transitionEl = document.querySelector('.page-transition');
     if (transitionEl) {
+        // Wait for connection to settle? No, wait for Paint.
+        const bgImg = document.querySelector('.background-img');
+        if (bgImg) {
+            try {
+                await bgImg.decode();
+                console.log("Background decoded and ready to paint.");
+            } catch (e) {
+                console.warn("Background decode failed/skipped (possibly missing or zero size)", e);
+            }
+        }
+
         setTimeout(() => {
             transitionEl.classList.add('hidden');
-        }, 500); // Wait 0.5s before revealing to ensure rendering
+        }, 100); // Small buffer after decode
     }
 });
 
