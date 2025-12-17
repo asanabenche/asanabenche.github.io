@@ -351,6 +351,7 @@ img {
     /* Ensure this is well above scroll (30) */
     display: none;
     /* JS toggles this */
+    will-change: transform, top, left;
 }
 
 .birdhouse-hole {
@@ -370,6 +371,19 @@ img {
     z-index: 2;
     transform: translate(-50%, -50%);
     transition: transform 0.5s ease;
+    will-change: transform;
+}
+
+/* Cardinal Head (Animated) */
+.cardinal-head-contact {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    width: 2.5%;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    transition: transform 0.5s ease;
+    will-change: transform;
 }
 
 .contact-corner {
@@ -469,6 +483,7 @@ img {
     /* Center vertical anchor */
     transition: left 4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     /* Smooth drive in */
+    will-change: left;
 }
 
 /* Class to trigger drive-in */
@@ -501,9 +516,9 @@ img {
     /* Estimated size */
     z-index: 21;
     /* Behind truck initially? */
-    transform: translate(-50%, -50%);
     pointer-events: none;
     /* No interaction while flying */
+    will-change: top, left, transform;
 }
 
 .scroll-item.fly-to-spot {
@@ -627,6 +642,7 @@ img {
     /* Start scaled down */
     transition: transform 0.3s ease-in;
     /* Smooth close (no bounce) */
+    will-change: transform;
 }
 
 .recipe-content.scale-in {
@@ -1528,6 +1544,8 @@ img {
     z-index: 2;
     z-index: 2;
     transition: transform 4s ease;
+    /* Required for rising animation */
+    will-change: transform;
 }
 
 .skater-flat {

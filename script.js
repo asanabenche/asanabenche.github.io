@@ -54,7 +54,9 @@ const playlist = [
 
 let currentIndex = 0;
 let isPlaying = false;
-const audio = new Audio(playlist[currentIndex]);
+const audio = new Audio();
+audio.src = playlist[currentIndex];
+audio.preload = 'none'; // Optimize: Don't load until needed
 
 // Select buttons
 const startStopBtn = document.querySelector('.start-stop-btn');
@@ -1679,6 +1681,9 @@ async function runTacoSequence() {
             if (scroll) {
                 scroll.classList.add('landed');
 
+                // User Request: Make scroll unclickable until truck exits completely.
+                scroll.style.pointerEvents = 'none';  // Disable interaction initially
+
                 // Add click listener for Recipe (Once)
                 scroll.onclick = () => {
                     const recipeModal = document.getElementById('tacoRecipeModal');
@@ -1779,6 +1784,12 @@ async function runTacoSequence() {
     truckImg.src = "images/Home/tacoDriving.gif";
     truck.classList.add('drive-exit');
 
-    // Wait for exit to clear screen then hide?
-    // Or just leave it off screen.
+    // Wait for exit to clear screen (2s)
+    await wait(2000);
+
+    // NOW enable scroll interaction
+    if (scroll) {
+        scroll.style.pointerEvents = 'auto';
+        console.log("Scroll unlocked for interaction.");
+    }
 }
