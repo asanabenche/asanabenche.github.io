@@ -906,6 +906,64 @@ document.addEventListener('DOMContentLoaded', () => {
             const THROW_FORCE = 15; // Multiplier for throw velocity (tuned for time-based calc)
             const ROTATION_SENSITIVITY = 1.5; // How much it spins when thrown
             const ANGULAR_FRICTION = 0.98; // Spin slows down over time
+            const MIN_THROW_RADIUS = 250; // Minimum distance from basket to count as a "throw"
+            const DROP_ZONE_WIDTH = 150; // Width of the "No Drop" zone above basket
+
+            // Debug Radius Visualization
+            const debugRadiusEl = document.querySelector('.debug-throw-radius');
+            const debugShowsRadiusEl = document.querySelector('.debug-radius-shows');
+            const debugDropZoneEl = document.querySelector('.debug-drop-zone');
+
+            // Calculate Centers
+            let basketCenter = { x: 0, y: 0, top: 0 };
+            let showsCenter = { x: 0, y: 0 };
+
+            const basketBottom = document.querySelector('.basket-bottom');
+            const showsBtn = document.querySelector('.shows-btn');
+
+            if (basketBottom) {
+                const rect = basketBottom.getBoundingClientRect();
+                basketCenter.x = rect.left + rect.width / 2 + window.scrollX;
+                basketCenter.y = rect.top + rect.height / 2 + window.scrollY;
+                basketCenter.top = rect.top + window.scrollY;
+
+                if (debugRadiusEl) {
+                    debugRadiusEl.style.width = `${MIN_THROW_RADIUS * 2}px`;
+                    debugRadiusEl.style.height = `${MIN_THROW_RADIUS * 2}px`;
+                    debugRadiusEl.style.left = `${basketCenter.x}px`;
+                    debugRadiusEl.style.top = `${basketCenter.y}px`;
+                    debugRadiusEl.style.display = 'block';
+                }
+
+                if (debugDropZoneEl) {
+                    debugDropZoneEl.style.width = `${DROP_ZONE_WIDTH}px`;
+                    // Height extends from basket top to top of screen
+                    debugDropZoneEl.style.height = `${basketCenter.top}px`;
+                    debugDropZoneEl.style.left = `${basketCenter.x}px`;
+                    debugDropZoneEl.style.top = `${basketCenter.top}px`;
+                    // CSS transform handles the 'bottom center' pivot to flip it up? 
+                    // No, simplified placement: Left is Center, Top is 0, Height is BasketTop.
+                    debugDropZoneEl.style.height = `${basketCenter.top}px`;
+                    debugDropZoneEl.style.top = `0px`;
+                    // Width centered
+                    debugDropZoneEl.style.transform = `translateX(-50%)`;
+                    debugDropZoneEl.style.display = 'block';
+                }
+            }
+
+            if (showsBtn) {
+                const rect = showsBtn.getBoundingClientRect();
+                showsCenter.x = rect.left + rect.width / 2 + window.scrollX;
+                showsCenter.y = (rect.top + rect.height / 2 + window.scrollY) - 60; // Offset upwards slightly
+
+                if (debugShowsRadiusEl) {
+                    debugShowsRadiusEl.style.width = `${MIN_THROW_RADIUS * 2}px`;
+                    debugShowsRadiusEl.style.height = `${MIN_THROW_RADIUS * 2}px`;
+                    debugShowsRadiusEl.style.left = `${showsCenter.x}px`;
+                    debugShowsRadiusEl.style.top = `${showsCenter.y}px`;
+                    debugShowsRadiusEl.style.display = 'block';
+                }
+            }
 
             // Drag Handlers
             apple.addEventListener('mousedown', (e) => {
@@ -1002,12 +1060,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, { passive: false });
 
+            // Helper for Radius Check
+            function checkRadius(x, y) {
+                if (!basketBottom) return false;
+
+                const dx = x - basketCenter.x;
+                const dy = y - basketCenter.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                return dist > MIN_THROW_RADIUS;
+            }
+
+            // Helper for Shows Radius Check
+            function checkShowsRadius(x, y) {
+                if (!showsBtn) return true; // If button missing, ignore check (pass)
+
+                const dx = x - showsCenter.x;
+                const dy = y - showsCenter.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                return dist > MIN_THROW_RADIUS;
+            }
+
+            // Helper for Drop Zone Check (Returns TRUE if inside forbidden zone)
+            function checkDropZone(x, y) {
+                if (!basketBottom) return false;
+
+                // Check Width
+                const dx = Math.abs(x - basketCenter.x);
+                const validX = dx < (DROP_ZONE_WIDTH / 2);
+
+                // Check Height (Above basket center)
+                const validY = y < basketCenter.y;
+
+                return validX && validY;
+            }
+
             window.addEventListener('mouseup', () => {
                 if (state.isDragging) {
                     state.isDragging = false;
 
-                    // Check Throw Origin (Left Half)
-                    state.thrownFromLeft = (state.lastMouseX < (window.innerWidth / 2));
+                    // Check Conditions
+                    state.isOutsideRadius = checkRadius(state.lastMouseX, state.lastMouseY);
+                    state.isOutsideShowsRadius = checkShowsRadius(state.lastMouseX, state.lastMouseY);
+                    state.isInDropZone = checkDropZone(state.lastMouseX, state.lastMouseY);
+
+                    // Initialize Path Tracking
+                    state.releasePoint = { x: state.lastMouseX, y: state.lastMouseY };
+                    state.pathLength = 0;
+                    state.wallBounceCount = 0;
+                    state.prevPos = { x: state.x, y: state.y }; // Use current apple-center pos logic if consistent, or just start from now.
+                    // Wait, state.x/y are top-left? Yes. state.lastMouseX/Y are pointer.
+                    // Let's rely on state.x/y for path tracking consistency.
+                    state.prevPos = { x: state.x, y: state.y };
+
 
                     // Calculate final release velocity from tracker
                     const now = performance.now();
@@ -1039,8 +1145,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (state.isDragging) {
                     state.isDragging = false;
 
-                    // Check Throw Origin (Left Half)
-                    state.thrownFromLeft = (state.lastMouseX < (window.innerWidth / 2));
+                    // Check Conditions
+                    state.isOutsideRadius = checkRadius(state.lastMouseX, state.lastMouseY);
+                    state.isOutsideShowsRadius = checkShowsRadius(state.lastMouseX, state.lastMouseY);
+                    state.isInDropZone = checkDropZone(state.lastMouseX, state.lastMouseY);
+
+                    // Initialize Path Tracking
+                    state.releasePoint = { x: state.lastMouseX, y: state.lastMouseY };
+                    state.pathLength = 0;
+                    state.wallBounceCount = 0;
+                    state.prevPos = { x: state.x, y: state.y };
 
                     // Calculate final release velocity from tracker
                     const now = performance.now();
@@ -1070,6 +1184,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Loop
             function updatePhysics() {
                 if (!state.isDragging) {
+                    // Update Path Length (Flight Distance)
+                    if (state.prevPos) {
+                        const dx = state.x - state.prevPos.x;
+                        const dy = state.y - state.prevPos.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        state.pathLength = (state.pathLength || 0) + dist;
+                    }
+                    state.prevPos = { x: state.x, y: state.y };
+
                     // Apply Forces
                     state.vy += GRAVITY;
 
@@ -1095,14 +1218,44 @@ document.addEventListener('DOMContentLoaded', () => {
                                 // Check Elapsed Time
                                 const elapsed = Date.now() - parseInt(apple.dataset.basketEnterTime);
                                 if (elapsed > 3000) {
-                                    // Success! (Must be thrown from left AND 5 eggs collected)
-                                    // Debug Conditions
-                                    console.log(`Checking Success: Triggered=${apple.dataset.successTriggered}, ThrownLeft=${state.thrownFromLeft}, EggCount=${eggCount}`);
+                                    // Check Trick Shot Condition
+                                    let isTrickShot = false;
+                                    if (state.releasePoint) {
+                                        const dx = state.x - state.releasePoint.x;
+                                        const dy = state.y - state.releasePoint.y;
+                                        const straightDist = Math.sqrt(dx * dx + dy * dy);
 
-                                    if (!apple.dataset.successTriggered && state.thrownFromLeft && eggCount >= 5) {
+                                        // Condition: Path length > Dynamic Multiplier * Straight Line
+                                        // Formula: 2.0 + (1500 / (dist + 10))
+                                        // 50px dist -> 2 + 25 = 27x required (Basically impossible short drops)
+                                        // 200px dist -> 2 + 7 = 9x required
+                                        const dynamicMultiplier = 2.0 + (1500 / (straightDist + 10));
+
+                                        if (state.pathLength > (straightDist * dynamicMultiplier)) {
+                                            isTrickShot = true;
+                                        }
+
+                                        // Check Wall Bounces
+                                        if (state.wallBounceCount >= 2) {
+                                            isTrickShot = true;
+                                        }
+
+                                        console.log(`Path Check: Length=${state.pathLength.toFixed(0)}, Straight=${straightDist.toFixed(0)}, Mult=${dynamicMultiplier.toFixed(2)}, Req=${(straightDist * dynamicMultiplier).toFixed(0)}, Bounces=${state.wallBounceCount}, TrickShot=${isTrickShot}`);
+                                    }
+
+                                    // Success! (Must be valid start OR trick shot) AND 5 eggs collected
+                                    const isValidStart = state.isOutsideRadius && state.isOutsideShowsRadius && !state.isInDropZone;
+                                    console.log(`Checking Success: Triggered=${apple.dataset.successTriggered}, ValidStart=${isValidStart} (Basket=${state.isOutsideRadius}, Shows=${state.isOutsideShowsRadius}, !DropZone=${!state.isInDropZone}), TrickShot=${isTrickShot}, EggCount=${eggCount}`);
+
+                                    if (!apple.dataset.successTriggered && (isValidStart || isTrickShot) && eggCount >= 5) {
                                         // Trigger Taco Truck Animation
                                         runTacoSequence();
                                         apple.dataset.successTriggered = "true";
+
+                                        // Hide debug elements upon success
+                                        if (debugRadiusEl) debugRadiusEl.style.display = 'none';
+                                        if (debugShowsRadiusEl) debugShowsRadiusEl.style.display = 'none';
+                                        if (debugDropZoneEl) debugDropZoneEl.style.display = 'none';
                                     }
                                 }
                             }
@@ -1142,7 +1295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const treeBottomAbsolute = treeBounds.bottom + window.scrollY;
 
                     if (state.y > (treeBottomAbsolute - 50)) {
-                        apple.style.zIndex = "100"; // Above Scroll (30), Below Basket (1001)
+                        apple.style.zIndex = "35"; // Above Scroll (30), Below Title (40)
                     }
 
                     // Collisions with Document Bounds (Absolute)
@@ -1160,6 +1313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         state.y = bounds.bottom;
                         state.vy *= -BOUNCE;
                         if (Math.abs(state.vy) < GRAVITY * 2) state.vy = 0;
+                        if (Math.abs(state.vy) > 1) state.wallBounceCount++; // Count bounce if significant impact
 
                         // Rolling Friction (Influence Rotation)
                         // Moving Right (+Vx) -> Spin Clockwise (+Angular)
@@ -1169,14 +1323,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (state.y < bounds.top) {
                         state.y = bounds.top;
                         state.vy *= -BOUNCE;
+                        if (Math.abs(state.vy) > 1) state.wallBounceCount++;
                     }
                     if (state.x > bounds.right) {
                         state.x = bounds.right;
                         state.vx *= -BOUNCE;
+                        if (Math.abs(state.vx) > 1) state.wallBounceCount++;
                     }
                     if (state.x < bounds.left) {
                         state.x = bounds.left;
                         state.vx *= -BOUNCE;
+                        if (Math.abs(state.vx) > 1) state.wallBounceCount++;
                     }
 
                     // Collisions with Solid Objects (OBB - Oriented Bounding Box)
@@ -1325,6 +1482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             apple.style.display = 'block'; // Make visible (but behind)
 
             updatePhysics();
+
         }
     }
 });

@@ -172,12 +172,13 @@ img {
     left: 2%;
     width: 50%;
     /* Adjust size as needed */
-    z-index: 25;
+    z-index: 40;
     rotate: -1deg;
     transform-origin: center;
     /* Shake around center */
     /* Above background, below interactive menus potentially */
 }
+
 
 .home-title.title-shake {
     animation: progressive-shake 1.5s linear forwards;
@@ -351,7 +352,7 @@ img {
     /* Starting position behind/near tree */
     left: 92%;
     width: 2.5%;
-    z-index: 100;
+    z-index: 35;
     /* Ensure this is well above scroll (30) */
     display: none;
     /* JS toggles this */
@@ -444,6 +445,42 @@ img {
     /* No scale transform as requested */
 }
 
+.debug-throw-radius {
+    position: absolute;
+    border: 2px dashed rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 0, 0, 0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+    /* JS toggles this */
+}
+
+.debug-drop-zone {
+    position: absolute;
+    background-color: rgba(255, 0, 0, 0.2);
+    border: 2px solid rgba(255, 0, 0, 0.5);
+    transform: translateX(-50%);
+    /* Start from bottom center */
+    transform-origin: bottom center;
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+}
+
+.debug-radius-shows {
+    position: absolute;
+    border: 2px dashed rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 0, 0, 0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+    /* JS toggles this */
+}
+
 /* Physics Debug Rectangles */
 .debug-rect {
     position: absolute;
@@ -509,6 +546,7 @@ img {
 .taco-truck-driving.drive-exit {
     left: -50% !important;
     transition: left 2s ease-in;
+    z-index: 41 !important;
 }
 
 /* Scroll Animation */
