@@ -360,37 +360,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const skaterBtn = document.querySelector('.chair-skater-btn');
     const skaterBehind = document.querySelector('.skater-behind');
-    let hoverStartTime = 0;
+    let isSkaterInPosition = false;
     let animationTriggered = false; // Prevent double clicks
 
     if (skaterBtn && skaterBehind) {
-        // Track when hover starts
+        // 1. Mouse Enter -> Start Rising
         skaterBtn.addEventListener('mouseenter', () => {
-            hoverStartTime = Date.now();
+            if (!animationTriggered) {
+                skaterBehind.classList.remove('falling');
+                skaterBehind.classList.add('rising');
+                // Ensure we clean up any inline styles from previous potential hacks (though we shouldn't have any now)
+                skaterBehind.style.cssText = '';
+            }
         });
 
-        // Reset on leave (optional, but good for logic)
+        // 2. Mouse Leave -> Reset (Fall back naturally via default transition)
         skaterBtn.addEventListener('mouseleave', () => {
-            hoverStartTime = 0;
+            if (!animationTriggered) {
+                skaterBehind.classList.remove('rising');
+                isSkaterInPosition = false;
+            }
         });
 
+        // 3. Transition End -> Check if Ready
+        skaterBehind.addEventListener('transitionend', (e) => {
+            // If the rising transition finished and we still have the class
+            if (e.propertyName === 'transform' && skaterBehind.classList.contains('rising')) {
+                isSkaterInPosition = true;
+            }
+        });
+
+        // 4. Click -> Trigger Rule
         skaterBtn.addEventListener('click', () => {
-            // Check if hovered for at least 4 seconds (4000ms) AND not already triggered
-            if (!animationTriggered && hoverStartTime > 0 && (Date.now() - hoverStartTime >= 4000)) {
+            if (!animationTriggered && isSkaterInPosition) {
                 animationTriggered = true;
-                // Trigger falling animation
+
+                // Swap classes to trigger fast fall
+                skaterBehind.classList.remove('rising');
                 skaterBehind.classList.add('falling');
 
-                // Wait for fall to finish (0.5s), then remove
+                // Trigger Secret Animation SIMULTANEOUSLY (immediately)
+                // The fall takes 0.2s. The secret animation starts with some delays.
+                // We'll queue the removal of the element for after the fall.
+
                 setTimeout(() => {
                     if (skaterBehind.parentNode) {
                         skaterBehind.parentNode.removeChild(skaterBehind);
                     }
-                    triggerSecretAnimation();
-                }, 500);
+                }, 500); // Safe buffer for 0.2s fall
+
+                triggerSecretAnimation();
             } else {
-                const duration = hoverStartTime > 0 ? Date.now() - hoverStartTime : 0;
-                console.log(`Click ignored. Hover duration: ${duration}ms (Required: 4000ms). Already Triggered: ${animationTriggered}`);
+                console.log(`Click ignored. Ready: ${isSkaterInPosition}. Triggered: ${animationTriggered}`);
             }
         });
     }

@@ -1502,11 +1502,15 @@ img {
     z-index: 3;
 }
 
-
-.chair-skater-btn:hover~.skater-behind {
+/* .chair-skater-btn:hover~.skater-behind {}  -- REMOVED per user request for class-based control */
+.skater-behind.rising {
     transform: translate(-0%, -56%);
 }
 
+.skater-behind.falling {
+    transform: translate(0, 0);
+    transition: transform 0.2s ease-in;
+}
 
 .no-skating {
     position: absolute;
