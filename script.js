@@ -524,6 +524,15 @@ window.addEventListener('load', () => {
     }
 });
 
+// Fail-safe: If window.load takes too long (e.g. YouTube iframe hangs), force reveal after 2s
+setTimeout(() => {
+    const transitionEl = document.querySelector('.page-transition');
+    if (transitionEl && !transitionEl.classList.contains('hidden')) {
+        console.warn("Page Load timeout: Forcing transition reveal.");
+        transitionEl.classList.add('hidden');
+    }
+}, 2000);
+
 // Fix for Back-Forward Cache (bfcache)
 window.addEventListener('pageshow', (event) => {
     // If the page is restored from the bfcache
