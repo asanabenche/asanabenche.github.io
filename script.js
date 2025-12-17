@@ -932,7 +932,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     debugRadiusEl.style.height = `${MIN_THROW_RADIUS * 2}px`;
                     debugRadiusEl.style.left = `${basketCenter.x}px`;
                     debugRadiusEl.style.top = `${basketCenter.y}px`;
-                    debugRadiusEl.style.display = 'block';
+                    // debugRadiusEl.style.display = 'block';
                 }
 
                 if (debugDropZoneEl) {
@@ -947,7 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     debugDropZoneEl.style.top = `0px`;
                     // Width centered
                     debugDropZoneEl.style.transform = `translateX(-50%)`;
-                    debugDropZoneEl.style.display = 'block';
+                    // debugDropZoneEl.style.display = 'block';
                 }
             }
 
@@ -961,7 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     debugShowsRadiusEl.style.height = `${MIN_THROW_RADIUS * 2}px`;
                     debugShowsRadiusEl.style.left = `${showsCenter.x}px`;
                     debugShowsRadiusEl.style.top = `${showsCenter.y}px`;
-                    debugShowsRadiusEl.style.display = 'block';
+                    // debugShowsRadiusEl.style.display = 'block';
                 }
             }
 
