@@ -45,6 +45,8 @@ img {
     line-height: 0;
     overflow: hidden;
     /* Prevent white space overflow from absolute elements */
+    background-color: black;
+    /* Fallback to prevent white flash */
 }
 
 .overlay-link,
