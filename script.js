@@ -39,24 +39,7 @@ document.addEventListener('keydown', unlockAudio);
 
 
 // Playlist of songs
-const playlist = [
-    "audioFiles/BIRD MUSIC MP3s/01 Boxed Out.mp3",
-    "audioFiles/BIRD MUSIC MP3s/03 Spy Balloon.mp3",
-    "audioFiles/BIRD MUSIC MP3s/04 Tidal.mp3",
-    "audioFiles/BIRD MUSIC MP3s/05 ROT.mp3",
-    "audioFiles/BIRD MUSIC MP3s/06 Asana.mp3",
-    "audioFiles/BIRD MUSIC MP3s/08 Benche.mp3",
-    "audioFiles/BIRD MUSIC MP3s/09 Agravada Mermelada.mp3",
-    "audioFiles/BIRD MUSIC MP3s/11 Toe Funkus.mp3",
-    "audioFiles/BIRD MUSIC MP3s/12 Horse in a Field.mp3",
-    "audioFiles/BIRD MUSIC MP3s/14 Outdoor Shower.mp3"
-];
 
-let currentIndex = 0;
-let isPlaying = false;
-const audio = new Audio();
-audio.src = playlist[currentIndex];
-audio.preload = 'none'; // Optimize: Don't load until needed
 
 // Select buttons
 const startStopBtn = document.querySelector('.start-stop-btn');
@@ -64,6 +47,25 @@ const skipBtn = document.querySelector('.skip-btn');
 
 // Only initialize audio player if buttons exist (Listening Room)
 if (startStopBtn && skipBtn) {
+    // Playlist of songs
+    const playlist = [
+        "audioFiles/BIRD MUSIC MP3s/01 Boxed Out.mp3",
+        "audioFiles/BIRD MUSIC MP3s/03 Spy Balloon.mp3",
+        "audioFiles/BIRD MUSIC MP3s/04 Tidal.mp3",
+        "audioFiles/BIRD MUSIC MP3s/05 ROT.mp3",
+        "audioFiles/BIRD MUSIC MP3s/06 Asana.mp3",
+        "audioFiles/BIRD MUSIC MP3s/08 Benche.mp3",
+        "audioFiles/BIRD MUSIC MP3s/09 Agravada Mermelada.mp3",
+        "audioFiles/BIRD MUSIC MP3s/11 Toe Funkus.mp3",
+        "audioFiles/BIRD MUSIC MP3s/12 Horse in a Field.mp3",
+        "audioFiles/BIRD MUSIC MP3s/14 Outdoor Shower.mp3"
+    ];
+
+    let currentIndex = 0;
+    let isPlaying = false;
+    const audio = new Audio();
+    audio.src = playlist[currentIndex];
+    audio.preload = 'none'; // Optimize: Don't load until needed
     // Function to toggle play/pause
     function togglePlay() {
         if (isPlaying) {
@@ -397,9 +399,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!animationTriggered && isSkaterInPosition) {
                 animationTriggered = true;
 
-                // Swap classes to trigger fast fall
+                // 1. Freeze current position using computed style
+                const computedStyle = window.getComputedStyle(skaterBehind);
+                const currentTransform = computedStyle.transform;
+
+                skaterBehind.style.transition = 'none';
+                skaterBehind.style.transform = currentTransform;
+
+                // Swap classes to trigger logic (but visual is controlled inline momentarily)
                 skaterBehind.classList.remove('rising');
                 skaterBehind.classList.add('falling');
+
+                // 2. Force Reflow (Critical)
+                void skaterBehind.offsetWidth;
+
+                // 3. Animate to Bottom (Home Position)
+                skaterBehind.style.transition = 'transform 0.2s ease-in';
+                skaterBehind.style.transform = 'translate(0, 0)';
 
                 // Trigger Secret Animation SIMULTANEOUSLY (immediately)
                 // The fall takes 0.2s. The secret animation starts with some delays.
@@ -436,9 +452,9 @@ function triggerSecretAnimation() {
         // Select existing police car element
         const policeCarDiv = document.querySelector('.police-car');
 
-        // Play Audio (plays "sooner" by starting now while animation waits)
-        const skaterAudio = new Audio('audioFiles/watchAudio/skaterAnimationAudio.wav');
-        skaterAudio.play().catch(err => console.log('Skater audio blocked:', err));
+        // REMOVED: Single long audio file
+        // const skaterAudio = new Audio('audioFiles/watchAudio/skaterAnimationAudio.wav');
+        // skaterAudio.play().catch(err => console.log('Skater audio blocked:', err));
 
         console.log("Animation Triggered: Starting Skater and Police Car sequence.");
 
@@ -446,12 +462,23 @@ function triggerSecretAnimation() {
         setTimeout(() => {
             if (skaterFlatDiv) {
                 console.log("Skater: Making visible and moving.");
+                // AUDIO: Skater Start
+                new Audio('audioFiles/watchAudio/skaterStart.wav').play().catch(e => console.warn(e));
+
                 skaterFlatDiv.style.display = 'block';
 
                 // FORCE REFLOW: Critical for Chrome/Edge to register the start position
                 void skaterFlatDiv.offsetWidth;
 
                 skaterFlatDiv.style.transform = "translate(-1400%, 0%)";
+
+                // AUDIO: Claps (End of movement)
+                const onEnd = () => {
+                    new Audio('audioFiles/watchAudio/claps.wav').play().catch(e => console.warn(e));
+                    skaterFlatDiv.removeEventListener('transitionend', onEnd);
+                };
+                skaterFlatDiv.addEventListener('transitionend', onEnd);
+
             } else {
                 console.error("Skater div not found!");
             }
@@ -462,6 +489,9 @@ function triggerSecretAnimation() {
             console.log("Police Car: Found element, scheduling run.");
             setTimeout(() => {
                 console.log("Police Car: Making visible and moving.");
+                // AUDIO: Police Start
+                new Audio('audioFiles/watchAudio/policeStart.wav').play().catch(e => console.warn(e));
+
                 policeCarDiv.style.display = 'block';
 
                 // FORCE REFLOW: Critical for Chrome/Edge
@@ -474,6 +504,12 @@ function triggerSecretAnimation() {
                 if (policeCarImg) {
                     policeCarImg.classList.add('wheelie-anim');
                 }
+
+                // AUDIO: Police Tire (600ms into movement, syncs with bounce)
+                setTimeout(() => {
+                    new Audio('audioFiles/watchAudio/policeTire.wav').play().catch(e => console.warn(e));
+                }, 600);
+
             }, 1900); // 0.5s delay to follow
         } else {
             console.error("Police Car div not found!");
@@ -483,6 +519,8 @@ function triggerSecretAnimation() {
         // 1. Launch (Upward) - Ease Out (Decelerate)
         setTimeout(() => {
             skaterImg.src = imgUp.src;
+            // AUDIO: Skater Jump
+            new Audio('audioFiles/watchAudio/skaterJump.wav').play().catch(e => console.warn(e));
 
             // Instantaneously set start position (slightly higher)
             skaterImg.style.transition = "none";
@@ -498,22 +536,29 @@ function triggerSecretAnimation() {
         }, 1200);
 
         // 2. Apex (Downward) - Ease In (Accelerate)
-        // Swaps to 'Down' image exactly at the peak
+        // 2. Apex (Downward) - Ease In (Accelerate)
         setTimeout(() => {
             skaterImg.src = imgDown.src;
+            // AUDIO: REMOVED skaterLand from here
+
             skaterImg.style.transition = "transform 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53), width 0.5s ease"; // Ease In
-            // skaterImg.style.width = "110%"; // Optional
+            skaterImg.style.width = "100%";
             skaterImg.style.transform = "translate(0%, +10%)";
-        }, 1700); // 1500 + 500ms duration
+        }, 1700); // 1200 + 500ms duration (No hang time, smooth arc)
 
         // 3. Landing (Flat) - Recovery
         // Swaps to 'Flat' image exactly at the bottom
         setTimeout(() => {
             skaterImg.src = imgFlat.src;
+            // AUDIO: Skater Land (Moved here)
+            new Audio('audioFiles/watchAudio/skaterLand.wav').play().catch(e => console.warn(e));
+            // AUDIO: Skater End (Flat Landing) - keeping end as well
+            new Audio('audioFiles/watchAudio/skaterEnd.wav').play().catch(e => console.warn(e));
+
             skaterImg.style.transition = "transform 0.3s ease, width 0.3s ease";
             skaterImg.style.width = "120%";
             skaterImg.style.transform = "translate(0%, -15%)";
-        }, 2200); // 2000 + 500ms duration
+        }, 2200); // 2000 + 200ms duration? Original logic was 2200.
     }
 }
 // --- PAGE TRANSITION LOGIC ---
