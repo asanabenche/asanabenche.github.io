@@ -562,63 +562,142 @@ function triggerSecretAnimation() {
     }
 }
 // --- PAGE TRANSITION LOGIC ---
-window.addEventListener('load', async () => {
+// --- PAGE PRELOADER & TRANSITION LOGIC ---
+const PAGE_ASSETS = {
+    'Home': [
+        'images/Home/homeBG.png',
+        'images/Home/homeBG_mobile.png',
+        'images/Home/listenSign.png',
+        'images/Home/shopSign.png',
+        'images/Home/showsSign.png',
+        'images/Home/lessonSign.png',
+        'images/Home/contactSign.png',
+        'images/Home/watchSign.png',
+        'images/Home/appleTree.png',
+        'images/Home/basketBot.png',
+        'images/Home/basketTop.png'
+    ],
+    'Shop': [
+        'images/Shop/shopBG.png',
+        'images/exitSign.png',
+        'images/Shop/greenFront.png',
+        'images/Shop/pinkBack.png',
+        'images/Shop/greenBack.png',
+        'images/Shop/shopKeep.png',
+        'images/Shop/door.png',
+        'images/Shop/stuffBowl.png',
+        'images/Shop/Flower1.png',
+        'images/Shop/Flower2.png',
+        'images/Shop/Flower3.png',
+        'images/Shop/Flower4.png'
+    ],
+    'Watch': [
+        'images/Watch/theaterBG.png',
+        'images/exitSign.png',
+        'images/Watch/curtainLeft.png',
+        'images/Watch/curtainRight.png',
+        'images/Watch/chairSkater.png',
+        'images/Watch/noSkating.png'
+    ],
+    'Listening Room': [
+        'images/Listen/listenBG.png',
+        'images/exitSign.png',
+        'images/Listen/skipSign.png',
+        'images/Listen/recordPlayer.png',
+        'images/Listen/duckGrapes.png',
+        'images/Listen/birdMusic.JPG'
+    ],
+    'Contact': [
+        'images/Contact/contactBG.png',
+        'images/Contact/contactBG_mobile.png',
+        'images/exitSign.png',
+        'images/Contact/contactDesk.png',
+        'images/Contact/cardinalHeadContact.png',
+        'images/Contact/hola.png',
+        'images/Contact/Instagram_icon.png',
+        'images/Contact/Youtube_icon.png',
+        'images/Contact/patreon_icon.png',
+        'images/Contact/tiktok_icon.png',
+        'images/Contact/email_icon.png'
+    ],
+    'Lessons': [
+        'images/Lessons/lessonsBG.jpeg',
+        'images/Lessons/lessonsBG_mobile.jpeg',
+        'images/exitSign.png',
+        'images/Lessons/meetTheTeachers.png',
+        'images/Lessons/bassChalk.png',
+        'images/Lessons/drumsChalk.png',
+        'images/Lessons/guitarChalk.png',
+        'images/Lessons/voiceChalk.png',
+        'images/Lessons/pianoChalk.png',
+        'images/Lessons/djembe.png',
+        'images/Lessons/piano.png',
+        'images/Lessons/bass.png',
+        'images/Lessons/guitar.png',
+        'images/Lessons/microphone.png'
+    ]
+};
+
+function preloadImages(urls) {
+    if (!urls || urls.length === 0) return Promise.resolve();
+    return Promise.all(urls.map(url => {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => resolve({ url, status: 'loaded' });
+            img.onerror = () => {
+                console.warn(`Failed to preload: ${url}`);
+                resolve({ url, status: 'failed' }); // Resolve anyway to not block app
+            };
+            img.src = url;
+        });
+    }));
+}
+
+function determinePageAssets() {
+    const title = document.title;
+    // Match title to asset key
+    // Home, Shop, Watch, Listening Room, Contact, Lessons
+    return PAGE_ASSETS[title] || [];
+}
+
+async function initPage() {
+    const assets = determinePageAssets();
+    console.log(`[Preloader] Preloading ${assets.length} assets for ${document.title}...`);
+
+    // 1. Wait for Image Preload
+    await preloadImages(assets);
+    console.log('[Preloader] Assets loaded.');
+
     const transitionEl = document.querySelector('.page-transition');
-    if (transitionEl) {
-        // Determine which background is primary based on view
-        // Note: Generic "background-img" is desktop, "mobile-bg-img" is mobile
-        const isMobile = window.innerWidth <= 768; // Matching CSS breakpoint
 
-        let targetImg = null;
+    // 2. Wait for Fonts/Layout (Double RAF trick) to ensure first paint is ready
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            console.log('[Preloader] Layout settled. Revealing page.');
 
-        if (isMobile) {
-            targetImg = document.querySelector('.mobile-bg-img');
-            // If no mobile img found but a generic one exists (and we rely on CSS bg like Home), 
-            // we might not have an IMG to decode. That's okay, we'll fall through.
-            if (!targetImg) {
-                // Double check if Home page mobile view is active (it uses CSS background-image)
-                // If so, we can't easily await decode() without creating a dummy image. 
-                // For now, rely on window.onload + timeout for Home Mobile.
+            // 3. Remove Loading State
+            document.body.classList.remove('loading');
+
+            // 4. Fade out transition overlay
+            if (transitionEl) {
+                transitionEl.classList.add('hidden');
             }
-        } else {
-            targetImg = document.querySelector('.background-img');
-        }
+        });
+    });
+}
 
-        if (targetImg) {
-            try {
-                // Ensure it's fully loaded/decoded before painting
-                await targetImg.decode();
-                console.log("Primary Background decoded.");
-            } catch (e) {
-                console.warn("Background decode failed/skipped", e);
-            }
-        }
+// Start Initialization immediately
+initPage();
 
-        setTimeout(() => {
-            transitionEl.classList.add('hidden');
-        }, 100);
-    }
-});
-
-// Fail-safe: If window.load takes too long (e.g. YouTube iframe hangs), force reveal after 2s
-setTimeout(() => {
-    const transitionEl = document.querySelector('.page-transition');
-    if (transitionEl && !transitionEl.classList.contains('hidden')) {
-        console.warn("Page Load timeout: Forcing transition reveal.");
-        transitionEl.classList.add('hidden');
-    }
-}, 2000);
 
 // Fix for Back-Forward Cache (bfcache)
 window.addEventListener('pageshow', (event) => {
     // If the page is restored from the bfcache
     if (event.persisted) {
+        document.body.classList.remove('loading');
         const transitionEl = document.querySelector('.page-transition');
         if (transitionEl) {
-            // Re-run the fade-in logic
-            setTimeout(() => {
-                transitionEl.classList.add('hidden');
-            }, 500); // Maintain same timing as load
+            transitionEl.classList.add('hidden');
         }
     }
 });

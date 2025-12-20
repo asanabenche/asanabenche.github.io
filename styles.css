@@ -38,6 +38,23 @@ img {
     user-drag: none;
 }
 
+/* --- LOADING STATE --- */
+/* Hide everything until assets are ready */
+body.loading .bg-wrapper,
+body.loading .desktop-view,
+body.loading .mobile-view {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Ensure the transition overlay is ALWAYS visible during loading */
+body.loading .page-transition {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
 /* --- GLOBAL STYLES --- */
 
 .bg-wrapper {
