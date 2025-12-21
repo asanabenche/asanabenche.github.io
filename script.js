@@ -20,27 +20,37 @@ const GlobalAudioPlayer = {
     defaultVolume: 0.55,
     isPlaying: false,
     audio: new Audio(),
-    fadeInterval: null,
+    ctx: null,
+    source: null,
+    gainNode: null,
 
     init() {
         this.audio.preload = 'none';
         this.audio.src = this.playlist[this.currentIndex];
-        this.audio.volume = this.defaultVolume;
+        this.audio.volume = 1.0; // Source always 1.0, controlled by GainNode if initialized
 
         // Auto-play next track
         this.audio.addEventListener('ended', () => {
             this.playNext();
         });
 
-        // Global Unlock
+        // Global Unlock & Web Audio Init
         const unlock = () => {
             if (this.audioUnlocked) return;
+
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (AudioContext) {
-                const ctx = new AudioContext();
-                ctx.resume();
-                const silent = new Audio();
-                silent.play().catch(() => { });
+                if (!this.ctx) {
+                    this.ctx = new AudioContext();
+                    this.gainNode = this.ctx.createGain();
+                    // Set initial volume
+                    this.gainNode.gain.setValueAtTime(this.defaultVolume, this.ctx.currentTime);
+
+                    this.source = this.ctx.createMediaElementSource(this.audio);
+                    this.source.connect(this.gainNode);
+                    this.gainNode.connect(this.ctx.destination);
+                }
+                this.ctx.resume();
             }
             this.audioUnlocked = true;
             document.removeEventListener('click', unlock);
@@ -60,6 +70,9 @@ const GlobalAudioPlayer = {
             if (typeof GlobalMixer !== 'undefined' && GlobalMixer.isActive()) {
                 GlobalMixer.stopAll();
             }
+            // Ensure context is running
+            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+
             this.audio.play().catch(e => console.error("Playback failed:", e));
         }
         this.isPlaying = !this.isPlaying;
@@ -74,7 +87,13 @@ const GlobalAudioPlayer = {
     },
 
     setVolume(vol) {
-        this.audio.volume = vol;
+        if (this.ctx && this.gainNode) {
+            this.gainNode.gain.cancelScheduledValues(this.ctx.currentTime);
+            this.gainNode.gain.setValueAtTime(vol, this.ctx.currentTime);
+        } else {
+            // Fallback if not initialized
+            this.audio.volume = vol;
+        }
     },
 
     playNext(manualSkip = false) {
@@ -88,10 +107,14 @@ const GlobalAudioPlayer = {
 
         this.currentIndex = (this.currentIndex + 1) % this.playlist.length;
         this.audio.src = this.playlist[this.currentIndex];
+
         if (this.isPlaying) {
+            // Ensure context is running
+            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
             this.audio.play().catch(e => console.error("Playback failed:", e));
         } else {
             // If we skip while paused, start playing
+            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
             this.audio.play().catch(e => console.error("Playback failed:", e));
             this.isPlaying = true;
         }
@@ -99,21 +122,15 @@ const GlobalAudioPlayer = {
     },
 
     fadeTo(targetVol, durationMs = 2000) {
-        const startVol = this.audio.volume;
-        const startTime = Date.now();
-        if (this.fadeInterval) clearInterval(this.fadeInterval);
-
-        this.fadeInterval = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / durationMs, 1);
-            const newVol = startVol + (targetVol - startVol) * progress;
-            this.audio.volume = Math.max(0, Math.min(1, newVol));
-
-            if (progress >= 1) {
-                clearInterval(this.fadeInterval);
-                this.fadeInterval = null;
-            }
-        }, 50);
+        if (this.ctx && this.gainNode) {
+            const now = this.ctx.currentTime;
+            this.gainNode.gain.cancelScheduledValues(now);
+            this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+            this.gainNode.gain.linearRampToValueAtTime(targetVol, now + (durationMs / 1000));
+        } else {
+            // Fallback (rare)
+            this.audio.volume = targetVol;
+        }
     },
 
     updateUI() {
@@ -857,6 +874,11 @@ const PageManager = {
             state.lastMouseX = x; state.lastMouseY = y;
             state.lastTime = performance.now();
             state.velocityTracker = [{ x, y, time: performance.now() }];
+
+            // Allow re-triggering only if picked up actively
+            if (apple.dataset.successTriggered) {
+                delete apple.dataset.successTriggered;
+            }
         };
         const moveDrag = (x, y) => {
             if (!state.isDragging) return;
@@ -979,7 +1001,7 @@ const PageManager = {
                         if (!basket.classList.contains('basket-recoverable')) basket.classList.add('basket-recoverable');
                     } else {
                         delete apple.dataset.basketEnterTime;
-                        delete apple.dataset.successTriggered;
+                        // Removed automatic reset of successTriggered here
                         basket.classList.remove('basket-recoverable');
                     }
                 }
