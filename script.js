@@ -903,11 +903,12 @@ const PageManager = {
             animationId: null
         };
 
-        const FRICTION = 0.96;          // Deceleration factor
+        const FRICTION = 0.96;          // Deceleration factor (used while spinning fast)
         const SWIPE_SENSITIVITY = 0.8;  // How much swipe distance translates to rotation
         const SPRING_STRENGTH = 0.03;   // How strongly it pulls back toward 0
         const SPRING_DAMPING = 0.92;    // Damping for spring oscillation
         const RPS_THRESHOLD = 6.0;      // Revolutions per second needed to trigger image swap (requires fast spin)
+        const SPRING_ENGAGE_VELOCITY = 3.0;  // Spring only engages when velocity drops below this
 
         // Bird image array - add more birds here as needed
         const BIRD_IMAGES = [
@@ -953,16 +954,21 @@ const PageManager = {
                 return;
             }
 
-            // Normalize rotation to -180 to 180 range for smooth return
-            while (state.rotation > 180) state.rotation -= 360;
-            while (state.rotation < -180) state.rotation += 360;
+            // Only apply spring force once velocity has slowed down enough
+            if (Math.abs(state.velocity) < SPRING_ENGAGE_VELOCITY) {
+                // Normalize rotation to -180 to 180 range for shortest path to 0
+                while (state.rotation > 180) state.rotation -= 360;
+                while (state.rotation < -180) state.rotation += 360;
 
-            // Apply spring force toward 0 (always active, pulls back to center)
-            const springForce = -state.rotation * SPRING_STRENGTH;
-            state.velocity += springForce;
-
-            // Apply damping to reduce oscillation
-            state.velocity *= SPRING_DAMPING;
+                // Apply spring force toward 0 via shortest path
+                const springForce = -state.rotation * SPRING_STRENGTH;
+                state.velocity += springForce;
+                // Apply spring damping
+                state.velocity *= SPRING_DAMPING;
+            } else {
+                // While spinning fast, just apply friction (let it spin freely)
+                state.velocity *= FRICTION;
+            }
 
             // Apply velocity to rotation
             state.rotation += state.velocity;
