@@ -484,50 +484,59 @@ const SpaRouter = {
         const transitionEl = document.querySelector('.page-transition');
         if (transitionEl) transitionEl.classList.remove('hidden');
 
-        setTimeout(() => {
-            this.loadContent(url, true);
-        }, 300); // Wait for fade out
+        // Start cleanup immediately
+        PageManager.cleanup();
+
+        // Start fetching content IMMEDIATELY (parallel with transition)
+        const contentPromise = this.fetchContent(url);
+
+        // Wait for BOTH transition AND content to be ready
+        const transitionPromise = new Promise(resolve => setTimeout(resolve, 300));
+
+        Promise.all([transitionPromise, contentPromise])
+            .then(([_, contentData]) => {
+                this.swapContent(contentData, url, true);
+            })
+            .catch(err => {
+                console.error("Navigation failed:", err);
+                window.location.href = url; // Fallback to hard reload
+            });
+    },
+
+    async fetchContent(url) {
+        const response = await fetch(url);
+        const html = await response.text();
+
+        // Parse HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        return {
+            body: doc.body,
+            title: doc.title
+        };
+    },
+
+    async swapContent(contentData, url, pushState = true) {
+        const { body: newBody, title: newTitle } = contentData;
+
+        document.title = newTitle;
+        document.body.innerHTML = newBody.innerHTML;
+
+        if (pushState) {
+            window.history.pushState({}, '', url);
+        }
+
+        // Re-Initialize Page Logic
+        await PageManager.init();
     },
 
     async loadContent(url, pushState = true) {
+        // Used for popstate (back/forward) - keep sequential behavior for simplicity
         try {
             PageManager.cleanup();
-            const response = await fetch(url);
-            const html = await response.text();
-
-            // Parse HTML
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-
-            // Swap Body Content (Keep Scripts)
-            // We'll replace everything in 'body' except the main script tag if possible, 
-            // but simplest is to replace body content and re-init.
-            // CAUTION: GlobalAudioPlayer is in memory, so replacing body won't stop it unless we remove script. 
-            // Since script.js is at end of body usually.
-
-            // Optimization: Assume structure is consistent. Replace .bg-wrapper and mobile view.
-            // Or just replace document.body.innerHTML BUT save the script execution? 
-            // No, replacing innerHTML destroys the script context if it was inside body.
-
-            // Better: Replace children of body that are NOT the script tag.
-            const newBody = doc.body;
-            const newTitle = doc.title;
-
-            document.title = newTitle;
-
-            // Clear current body (preserving script if it's there? - Script is likely loaded once)
-            // Our script is loaded at the end. We should try not to wipe it.
-            // Strategy: clear innerHTML, then append new content. 
-            // Since we are in the script, we persist.
-            document.body.innerHTML = newBody.innerHTML;
-
-            if (pushState) {
-                window.history.pushState({}, '', url);
-            }
-
-            // Re-Initialize Page Logic
-            await PageManager.init();
-
+            const contentData = await this.fetchContent(url);
+            await this.swapContent(contentData, url, pushState);
         } catch (err) {
             console.error("Navigation failed:", err);
             window.location.href = url; // Fallback to hard reload
@@ -539,6 +548,7 @@ const PageManager = {
     activeTimeouts: [],
     activeSfx: [],
     tacoAnimationPlaying: false,
+    physicsCleanup: null,
 
     async init() {
         // Universal Inits
@@ -584,6 +594,12 @@ const PageManager = {
         // 3. Fade back in persistent audio if it was ducked
         if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.fadeTo(GlobalAudioPlayer.defaultVolume, 1500);
         if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 1500);
+
+        // 4. Clean up physics event listeners to prevent memory leaks
+        if (this.physicsCleanup) {
+            this.physicsCleanup();
+            this.physicsCleanup = null;
+        }
     },
 
     registerTimeout(callback, ms) {
@@ -714,14 +730,47 @@ const PageManager = {
     determinePageAssets() {
         const title = document.title;
         const map = {
-            'Home': ['images/Home/homeBG.png', 'images/Home/appleTree.png'],
-            'Shop': ['images/Shop/shopBG.png', 'images/Shop/shopKeep.png'],
-            'Watch': ['images/Watch/theaterBG.png'],
-            'Listening Room': ['images/Listen/listenBG.png'],
-            'Contact': ['images/Contact/contactBG.png'],
-            'Lessons': ['images/Lessons/lessonsBG.jpeg']
+            'Home': [
+                'images/Home/homeBG.png',
+                'images/Home/appleTree.png',
+                'images/Home/asanabencheTitle.png',
+                'images/Home/cardinalHead.png',
+                'images/Home/listenSign.png',
+                'images/Home/shopSign.png',
+                'images/Home/contactSign.png',
+                'images/Home/lessonSign.png',
+                'images/Home/watchSign.png'
+            ],
+            'Shop': [
+                'images/Shop/shopBG.png',
+                'images/Shop/shopKeep.png',
+                'images/Shop/door.png',
+                'images/Shop/greenFront.png',
+                'images/Shop/pinkBack.png'
+            ],
+            'Watch': [
+                'images/Watch/theaterBG.png',
+                'images/Watch/curtainLeft.png',
+                'images/Watch/curtainRight.png',
+                'images/Watch/chairSkater.png'
+            ],
+            'Listening Room': [
+                'images/Listen/listenBG.png',
+                'images/Listen/recordPlayer.png',
+                'images/Listen/duckGrapes.png',
+                'images/Listen/skipSign.png'
+            ],
+            'Contact': [
+                'images/Contact/contactBG.png',
+                'images/Contact/contactDesk.png',
+                'images/Contact/cardinalHeadContact.png',
+                'images/Contact/hola.png'
+            ],
+            'Lessons': [
+                'images/Lessons/lessonsBG.jpeg',
+                'images/Lessons/meetTheTeachers.png'
+            ]
         };
-        // Simplified asset list for brevity in SPA re-init
         return map[title] || [];
     },
 
@@ -1085,6 +1134,16 @@ const PageManager = {
 
         window.addEventListener('mouseup', onMouseUp);
         window.addEventListener('touchend', onTouchEnd);
+
+        // Register cleanup function to remove listeners on navigation
+        this.physicsCleanup = () => {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('touchmove', onTouchMove);
+            window.removeEventListener('mouseup', onMouseUp);
+            window.removeEventListener('touchend', onTouchEnd);
+            apple.removeEventListener('mousedown', onMouseDown);
+            apple.removeEventListener('touchstart', onTouchStart);
+        };
 
         // --- UPDATE LOOP ---
         const updatePhysics = () => {
