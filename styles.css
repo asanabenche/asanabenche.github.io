@@ -1914,6 +1914,19 @@ body.loading .page-transition {
         z-index: 1;
     }
 
+    .mobile-bird {
+        position: absolute;
+        top: 3%;
+        left: 50%;
+        transform: translateX(-50%) perspective(800px) rotateY(0deg);
+        transform-style: preserve-3d;
+        width: 90%;
+        height: auto;
+        z-index: 9999;
+        cursor: pointer;
+        touch-action: pan-y;
+    }
+
     .mobile-menu {
         display: flex;
         flex-direction: column;
@@ -1926,8 +1939,8 @@ body.loading .page-transition {
         transform: none;
         width: 100%;
         align-items: center;
-        margin-top: 15vh;
-        /* Position it visually where we want (roughly 15% down + header space) */
+        margin-top: 60%;
+        /* Position lower to make room for bird image, uses % for consistent scaling */
         padding-bottom: 150px;
         /* Extra space at bottom */
     }
@@ -2057,6 +2070,7 @@ body.loading .page-transition {
         cursor: pointer;
         transition: transform 0.2s;
         display: block;
+        width: 100%;
         /* Ensure it wraps the image */
     }
 

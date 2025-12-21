@@ -883,6 +883,179 @@ const PageManager = {
                 if (e.target === recipeModal) closeRecipeBtn.click();
             });
         }
+
+        // --- MOBILE BIRD SPINNING ---
+        this.initMobileBirdSpin();
+    },
+
+    // Mobile Bird Y-Axis Spin Physics
+    initMobileBirdSpin() {
+        const bird = document.querySelector('.mobile-bird');
+        if (!bird) return;
+
+        let state = {
+            rotation: 0,           // Current Y rotation in degrees
+            velocity: 0,           // Angular velocity
+            isDragging: false,
+            startX: 0,
+            lastX: 0,
+            lastTime: 0,
+            animationId: null
+        };
+
+        const FRICTION = 0.96;          // Deceleration factor
+        const SWIPE_SENSITIVITY = 0.8;  // How much swipe distance translates to rotation
+        const SPRING_STRENGTH = 0.03;   // How strongly it pulls back toward 0
+        const SPRING_DAMPING = 0.92;    // Damping for spring oscillation
+        const RPS_THRESHOLD = 6.0;      // Revolutions per second needed to trigger image swap (requires fast spin)
+
+        // Bird image array - add more birds here as needed
+        const BIRD_IMAGES = [
+            'images/Home/bird1.png',
+            'images/Home/bird2.png'
+            // Add more: 'images/Home/bird3.png', 'images/Home/bird4.png', etc.
+        ];
+        let currentBirdIndex = 0;
+        let canSwap = true;  // Prevents rapid swapping, resets when velocity drops
+
+        // Preload all bird images
+        BIRD_IMAGES.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        const updateTransform = () => {
+            bird.style.transform = `translateX(-50%) perspective(800px) rotateY(${state.rotation}deg)`;
+        };
+
+        const checkAndSwapImage = () => {
+            // Calculate revolutions per second from velocity
+            // velocity is degrees per frame (~16.67ms at 60fps)
+            // RPS = (velocity * 60) / 360
+            const rps = Math.abs(state.velocity * 60) / 360;
+
+            if (rps >= RPS_THRESHOLD && canSwap) {
+                // Cycle to next bird, loop back to 0 after last
+                currentBirdIndex = (currentBirdIndex + 1) % BIRD_IMAGES.length;
+                bird.src = BIRD_IMAGES[currentBirdIndex];
+                canSwap = false;  // Prevent immediate re-swap
+            }
+
+            // Reset swap ability when velocity drops below threshold
+            if (rps < RPS_THRESHOLD * 0.5) {
+                canSwap = true;
+            }
+        };
+
+        const animate = () => {
+            if (state.isDragging) {
+                state.animationId = requestAnimationFrame(animate);
+                return;
+            }
+
+            // Normalize rotation to -180 to 180 range for smooth return
+            while (state.rotation > 180) state.rotation -= 360;
+            while (state.rotation < -180) state.rotation += 360;
+
+            // Apply spring force toward 0 (always active, pulls back to center)
+            const springForce = -state.rotation * SPRING_STRENGTH;
+            state.velocity += springForce;
+
+            // Apply damping to reduce oscillation
+            state.velocity *= SPRING_DAMPING;
+
+            // Apply velocity to rotation
+            state.rotation += state.velocity;
+
+            // Check if spinning fast enough to swap image
+            checkAndSwapImage();
+
+            updateTransform();
+
+            // Continue animation if still moving or not settled
+            if (Math.abs(state.velocity) > 0.01 || Math.abs(state.rotation) > 0.1) {
+                state.animationId = requestAnimationFrame(animate);
+            } else {
+                // Fully settled
+                state.rotation = 0;
+                state.velocity = 0;
+                updateTransform();
+                state.animationId = null;
+            }
+        };
+
+        const startInteraction = (x) => {
+            state.isDragging = true;
+            state.startX = x;
+            state.lastX = x;
+            state.lastTime = performance.now();
+            state.velocity = 0; // Stop any ongoing spin
+
+            // Start animation loop if not running
+            if (!state.animationId) {
+                state.animationId = requestAnimationFrame(animate);
+            }
+        };
+
+        const moveInteraction = (x) => {
+            if (!state.isDragging) return;
+
+            const now = performance.now();
+            const dx = x - state.lastX;
+            const dt = now - state.lastTime;
+
+            // Direct rotation while dragging
+            state.rotation += dx * SWIPE_SENSITIVITY;
+
+            // Track velocity for release
+            if (dt > 0) {
+                state.velocity = (dx / dt) * 15; // Scale for good feel
+            }
+
+            state.lastX = x;
+            state.lastTime = now;
+            updateTransform();
+        };
+
+        const endInteraction = () => {
+            if (!state.isDragging) return;
+            state.isDragging = false;
+            // Animation continues from the animate() loop
+        };
+
+        // Touch Events
+        bird.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startInteraction(e.touches[0].clientX);
+        }, { passive: false });
+
+        bird.addEventListener('touchmove', (e) => {
+            if (state.isDragging) {
+                e.preventDefault();
+                moveInteraction(e.touches[0].clientX);
+            }
+        }, { passive: false });
+
+        bird.addEventListener('touchend', endInteraction);
+        bird.addEventListener('touchcancel', endInteraction);
+
+        // Mouse Events (for desktop testing)
+        bird.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startInteraction(e.clientX);
+        });
+
+        const onMouseMove = (e) => moveInteraction(e.clientX);
+        const onMouseUp = () => {
+            endInteraction();
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+        };
+
+        bird.addEventListener('mousedown', () => {
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+        });
     },
 
     // --- HELPER: HOME STATE --
