@@ -23,11 +23,12 @@ const GlobalAudioPlayer = {
     ctx: null,
     source: null,
     gainNode: null,
+    sfxBuffers: new Map(), // Cache for decoded audio
 
     init() {
         this.audio.preload = 'none';
         this.audio.src = this.playlist[this.currentIndex];
-        this.audio.volume = 1.0; // Source always 1.0, controlled by GainNode if initialized
+        this.audio.volume = 1.0;
 
         // Auto-play next track
         this.audio.addEventListener('ended', () => {
@@ -36,22 +37,23 @@ const GlobalAudioPlayer = {
 
         // Global Unlock & Web Audio Init
         const unlock = () => {
-            if (this.audioUnlocked) return;
-
+            // Ensure context exists
             const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (AudioContext) {
-                if (!this.ctx) {
-                    this.ctx = new AudioContext();
-                    this.gainNode = this.ctx.createGain();
-                    // Set initial volume
-                    this.gainNode.gain.setValueAtTime(this.defaultVolume, this.ctx.currentTime);
+            if (AudioContext && !this.ctx) {
+                this.ctx = new AudioContext();
+                this.gainNode = this.ctx.createGain();
+                this.gainNode.gain.setValueAtTime(this.defaultVolume, this.ctx.currentTime);
+                this.gainNode.connect(this.ctx.destination);
 
-                    this.source = this.ctx.createMediaElementSource(this.audio);
-                    this.source.connect(this.gainNode);
-                    this.gainNode.connect(this.ctx.destination);
-                }
+                // Main Music Source
+                this.source = this.ctx.createMediaElementSource(this.audio);
+                this.source.connect(this.gainNode);
+            }
+
+            if (this.ctx && this.ctx.state === 'suspended') {
                 this.ctx.resume();
             }
+
             this.audioUnlocked = true;
             document.removeEventListener('click', unlock);
             document.removeEventListener('touchstart', unlock);
@@ -61,6 +63,95 @@ const GlobalAudioPlayer = {
         document.addEventListener('touchstart', unlock);
         document.addEventListener('keydown', unlock);
     },
+
+    // --- SFX SYSTEM ---
+    async preloadSfx(urls) {
+        if (!window.AudioContext && !window.webkitAudioContext) return;
+
+        // Ensure ctx is ready (silent init if needed logic could go here, 
+        // but typically we wait for user interaction. Preloading can happen before interaction if we don't need to decode immediately?
+        // Actually decodeAudioData needs a context. If we don't have one, we can't decode.
+        // We'll create a temporary context or just wait. 
+        // Better: Create the context immediately but suspended? 
+        // Browsers allow creating context before gesture, just not playing.
+
+        if (!this.ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                this.ctx = new AudioContext();
+                this.gainNode = this.ctx.createGain();
+                this.gainNode.gain.setValueAtTime(this.defaultVolume, this.ctx.currentTime);
+                this.gainNode.connect(this.ctx.destination);
+
+                this.source = this.ctx.createMediaElementSource(this.audio);
+                this.source.connect(this.gainNode);
+            }
+        }
+        if (!this.ctx) return;
+
+        await Promise.all(urls.map(async url => {
+            if (this.sfxBuffers.has(url)) return;
+            try {
+                const res = await fetch(url);
+                const ab = await res.arrayBuffer();
+                const buffer = await this.ctx.decodeAudioData(ab);
+                this.sfxBuffers.set(url, buffer);
+            } catch (e) {
+                console.error("Failed to preload SFX:", url, e);
+            }
+        }));
+    },
+
+    playSfx(url) {
+        if (!this.ctx) this.init(); // Try init
+        if (!this.ctx) return null;
+
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const buffer = this.sfxBuffers.get(url);
+        if (!buffer) {
+            console.warn("SFX not preloaded, playing via legacy (or fetching now):", url);
+            // Fallback: Fetch and play immediately (async)
+            this.preloadSfx([url]).then(() => {
+                const b = this.sfxBuffers.get(url);
+                if (b) this.playBuffer(b);
+            });
+            return null; // Return null as we can't return control immediately
+        }
+
+        return this.playBuffer(buffer);
+    },
+
+    playBuffer(buffer) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+        const gain = this.ctx.createGain();
+        gain.gain.value = 1.0;
+
+        source.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        source.start(0);
+
+        // Wrapper to mimic legacy Audio element for fading/stopping
+        return {
+            source,
+            gain,
+            stop: () => {
+                try { source.stop(); } catch (e) { }
+            },
+            fadeTo: (vol, ms) => {
+                const now = this.ctx.currentTime;
+                gain.gain.cancelScheduledValues(now);
+                gain.gain.setValueAtTime(gain.gain.value, now);
+                gain.gain.linearRampToValueAtTime(vol, now + (ms / 1000));
+            },
+            // Mock onended for compatibility? 
+            // The browser fires 'ended' on source. We can expose it.
+            set onended(cb) { source.onended = cb; }
+        };
+    },
+
 
     togglePlay() {
         if (this.isPlaying) {
@@ -192,8 +283,15 @@ const GlobalMixer = {
     async init() {
         if (this.isInitialized) return;
 
-        const AC = window.AudioContext || window.webkitAudioContext;
-        this.ctx = new AC();
+        // Shared Context with GlobalAudioPlayer
+        if (typeof GlobalAudioPlayer !== 'undefined' && GlobalAudioPlayer.ctx) {
+            this.ctx = GlobalAudioPlayer.ctx;
+        } else {
+            // Fallback if accessed before GlobalAudioPlayer init (should be rare)
+            const AC = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AC();
+        }
+
         this.masterGain = this.ctx.createGain();
         this.masterGain.connect(this.ctx.destination);
 
@@ -495,29 +593,45 @@ const PageManager = {
     },
 
     playSfx(file) {
+        if (typeof GlobalAudioPlayer !== 'undefined' && GlobalAudioPlayer.playSfx) {
+            const sfx = GlobalAudioPlayer.playSfx(file);
+            if (sfx) {
+                this.activeSfx.push(sfx);
+                // Auto-cleanup from active list on end
+                sfx.onended = () => {
+                    this.activeSfx = this.activeSfx.filter(s => s !== sfx);
+                };
+                return sfx;
+            }
+        }
+        // Fallback for safety (though GlobalAudioPlayer should exist)
         const aud = new Audio(file);
         this.activeSfx.push(aud);
-        aud.play().catch(e => console.log("SFX play failed", e));
-        aud.onended = () => {
-            const idx = this.activeSfx.indexOf(aud);
-            if (idx > -1) this.activeSfx.splice(idx, 1);
-        };
+        aud.play().catch(e => console.log("SFX play failed (legacy)", e));
         return aud;
     },
 
     fadeSfxOut(aud, durationMs) {
-        const startVol = aud.volume;
-        const startTime = Date.now();
-        const interval = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / durationMs, 1);
-            aud.volume = startVol * (1 - progress);
-            if (progress >= 1) {
-                clearInterval(interval);
-                aud.pause();
-                aud.currentTime = 0;
-            }
-        }, 50);
+        if (aud.fadeTo) {
+            // BufferSource wrapper
+            aud.fadeTo(0, durationMs);
+            setTimeout(() => aud.stop(), durationMs);
+        } else {
+            // Legacy HTML Audio
+            const startVol = aud.volume;
+            const steps = 20;
+            const stepTime = durationMs / steps;
+            const volStep = startVol / steps;
+            const fade = setInterval(() => {
+                if (aud.volume > 0.05) {
+                    aud.volume -= volStep;
+                } else {
+                    aud.volume = 0;
+                    aud.pause();
+                    clearInterval(fade);
+                }
+            }, stepTime);
+        }
     },
 
     wait(ms) {
@@ -636,6 +750,22 @@ const PageManager = {
                 new Image().src = "images/Home/tacoLaser1.png";
                 new Image().src = "images/Home/tacoLaser2.png";
                 new Image().src = "images/Home/tacoLaser3.png";
+
+                // Preload Taco Audio
+                if (typeof GlobalAudioPlayer !== 'undefined') {
+                    GlobalAudioPlayer.preloadSfx([
+                        'audioFiles/homeAudio/truckAudio.wav',
+                        'audioFiles/homeAudio/speaking1.wav',
+                        'audioFiles/homeAudio/speaking2.wav',
+                        'audioFiles/homeAudio/trickshot1.wav',
+                        'audioFiles/homeAudio/trickshot2.wav',
+                        'audioFiles/homeAudio/seemsOff.wav',
+                        'audioFiles/homeAudio/truckWub.wav',
+                        'audioFiles/homeAudio/laserSound.wav',
+                        'audioFiles/homeAudio/popSound.wav',
+                        'audioFiles/homeAudio/truckOut.wav'
+                    ]);
+                }
             }
         }, 500);
 
@@ -1328,6 +1458,20 @@ const PageManager = {
     initWatch() {
         const btn = document.querySelector('.chair-skater-btn');
         const active = document.querySelector('.skater-behind');
+
+        // Preload Watch Audio
+        if (typeof GlobalAudioPlayer !== 'undefined') {
+            GlobalAudioPlayer.preloadSfx([
+                'audioFiles/watchAudio/skaterStart.wav',
+                'audioFiles/watchAudio/claps.wav',
+                'audioFiles/watchAudio/policeStart.wav',
+                'audioFiles/watchAudio/policeTire.wav',
+                'audioFiles/watchAudio/skaterJump.wav',
+                'audioFiles/watchAudio/skaterLand.wav',
+                'audioFiles/watchAudio/skaterEnd.wav'
+            ]);
+        }
+
         let ready = false, triggered = false;
         if (btn && active) {
             btn.onmouseenter = () => { if (!triggered) { active.classList.remove('falling'); active.classList.add('rising'); active.style.cssText = ''; } };
@@ -1441,6 +1585,12 @@ const PageManager = {
         const head = document.querySelector('.cardinal-head-contact');
         if (btn && head) {
             let files = []; for (let i = 1; i <= 11; i++) files.push(`audioFiles/contactAudio/spanishAudio${i}.wav`);
+
+            // Preload Contact Audio
+            if (typeof GlobalAudioPlayer !== 'undefined') {
+                GlobalAudioPlayer.preloadSfx(files);
+            }
+
             let idx = 0; let active = false;
             btn.onclick = () => {
                 if (active) return;
