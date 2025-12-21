@@ -84,12 +84,13 @@ body.loading .page-transition {
 }
 
 .music-indicator-home.pos-listen.visible {
+    filter: brightness(1.5);
     transform: translate(-50%, -50%) scale(1.8) rotate(240deg);
 }
 
 .music-indicator-home.pos-listen.visible:hover {
     transform: translate(-50%, -50%) scale(2.0) rotate(260deg);
-    filter: brightness(1.3);
+    filter: brightness(1.8);
 }
 
 /* Position: Lessons (Normal) */
@@ -100,12 +101,13 @@ body.loading .page-transition {
 }
 
 .music-indicator-home.pos-lessons.visible {
+    filter: brightness(1.5);
     transform: translate(-50%, -50%) scale(1.8) rotate(-20deg);
 }
 
 .music-indicator-home.pos-lessons.visible:hover {
     transform: translate(-50%, -50%) scale(2.0);
-    filter: brightness(1.3);
+    filter: brightness(1.8);
 }
 
 /* --- GLOBAL STYLES --- */

@@ -17,7 +17,7 @@ const GlobalAudioPlayer = {
         "audioFiles/BIRD MUSIC MP3s/14 Outdoor Shower.mp3"
     ],
     currentIndex: 0,
-    defaultVolume: 0.65,
+    defaultVolume: 0.55,
     isPlaying: false,
     audio: new Audio(),
     fadeInterval: null,
@@ -77,13 +77,21 @@ const GlobalAudioPlayer = {
         this.audio.volume = vol;
     },
 
-    playNext() {
+    playNext(manualSkip = false) {
+        // If auto-play (not manual) and at end, stop.
+        if (!manualSkip && this.currentIndex === this.playlist.length - 1) {
+            this.stop();
+            this.currentIndex = 0; // Reset to start
+            this.audio.src = this.playlist[0];
+            return;
+        }
+
         this.currentIndex = (this.currentIndex + 1) % this.playlist.length;
         this.audio.src = this.playlist[this.currentIndex];
         if (this.isPlaying) {
             this.audio.play().catch(e => console.error("Playback failed:", e));
         } else {
-            // If we skip while paused, start playing? Original implied yes for skipBtn
+            // If we skip while paused, start playing
             this.audio.play().catch(e => console.error("Playback failed:", e));
             this.isPlaying = true;
         }
@@ -155,12 +163,12 @@ const GlobalMixer = {
 
     masterGain: null,
 
-    fadeTo(targetVol, durationS = 2) {
+    fadeTo(targetVol, durationMs = 2000) {
         if (this.masterGain && this.ctx) {
             const now = this.ctx.currentTime;
             this.masterGain.gain.cancelScheduledValues(now);
             this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
-            this.masterGain.gain.linearRampToValueAtTime(targetVol, now + durationS);
+            this.masterGain.gain.linearRampToValueAtTime(targetVol, now + (durationMs / 1000));
         }
     },
 
@@ -415,6 +423,7 @@ const SpaRouter = {
 const PageManager = {
     activeTimeouts: [],
     activeSfx: [],
+    tacoAnimationPlaying: false,
 
     async init() {
         // Universal Inits
@@ -459,7 +468,7 @@ const PageManager = {
 
         // 3. Fade back in persistent audio if it was ducked
         if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.fadeTo(GlobalAudioPlayer.defaultVolume, 1500);
-        if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 1.5);
+        if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 1500);
     },
 
     registerTimeout(callback, ms) {
@@ -959,7 +968,7 @@ const PageManager = {
                             ];
                             const allEggsUnlocked = eggs.every(key => sessionStorage.getItem(key) !== null);
 
-                            if (!apple.dataset.successTriggered && (isValidStart || isTrickShot) && allEggsUnlocked) {
+                            if (!apple.dataset.successTriggered && (isValidStart || isTrickShot) && allEggsUnlocked && !this.tacoAnimationPlaying) {
                                 this.runTacoSequence(isTrickShot);
                                 apple.dataset.successTriggered = "true";
                                 if (debugRadiusEl) debugRadiusEl.style.display = 'none';
@@ -970,6 +979,7 @@ const PageManager = {
                         if (!basket.classList.contains('basket-recoverable')) basket.classList.add('basket-recoverable');
                     } else {
                         delete apple.dataset.basketEnterTime;
+                        delete apple.dataset.successTriggered;
                         basket.classList.remove('basket-recoverable');
                     }
                 }
@@ -1116,9 +1126,11 @@ const PageManager = {
 
         console.log("Starting Taco Sequence...");
 
-        // DUCK AUDIO
-        if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.setVolume(0.1);
-        if (typeof GlobalMixer !== 'undefined') GlobalMixer.setMasterVolume(0.1);
+        this.tacoAnimationPlaying = true;
+
+        // DUCK AUDIO (Fade)
+        if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.fadeTo(0.1, 800);
+        if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(0.1, 800);
 
         // 1. DRIVE IN
         truckImg.src = "images/Home/tacoDriving.gif" + '?t=' + new Date().getTime();
@@ -1242,7 +1254,9 @@ const PageManager = {
 
         // RESTORE AUDIO (End of Sequence)
         if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.fadeTo(GlobalAudioPlayer.defaultVolume, 2000);
-        if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 2);
+        if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 2000);
+
+        this.tacoAnimationPlaying = false;
     },
 
     // --- OTHER PAGE INITS ---
@@ -1258,8 +1272,13 @@ const PageManager = {
             const a = document.querySelector(`.flower-${i}-anim`);
             if (!f || !s || !a) continue;
             const hover = () => {
-                a.src = `images/Shop/Flower${i}_Anim.gif?t=` + Date.now();
-                a.style.display = 'block'; s.style.visibility = 'hidden';
+                const animSrc = `images/Shop/Flower${i}_Anim.gif`;
+                a.src = '';
+                void a.offsetWidth; // Force Reflow to restart GIF
+                a.src = animSrc;
+                a.style.display = 'block';
+                // Delay hiding static image to bridge the gap (prevent flicker)
+                this.registerTimeout(() => s.style.visibility = 'hidden', 50);
                 this.registerTimeout(() => { s.style.visibility = 'visible'; a.style.display = 'none'; }, 700);
 
                 // Sequence Logic
@@ -1313,9 +1332,9 @@ const PageManager = {
         const flat = document.querySelector('.skater-flat');
         const img = flat ? flat.querySelector('img') : null;
         if (flat && img) {
-            // DUCK AUDIO
-            if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.setVolume(0.1);
-            if (typeof GlobalMixer !== 'undefined') GlobalMixer.setMasterVolume(0.1);
+            // DUCK AUDIO (Fade)
+            if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.fadeTo(0.1, 800);
+            if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(0.1, 800);
 
             if (!sessionStorage.getItem('watchEggStatus')) this.unlockEggHelper('watchEggStatus');
 
@@ -1337,7 +1356,7 @@ const PageManager = {
                     this.registerTimeout(() => {
                         // RESTORE AUDIO
                         if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.fadeTo(GlobalAudioPlayer.defaultVolume, 2000);
-                        if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 2);
+                        if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 2000);
                     }, 2000);
 
                     flat.removeEventListener('transitionend', end);
@@ -1378,7 +1397,7 @@ const PageManager = {
             const startStopBtn = document.querySelector('.start-stop-btn');
             const skipBtn = document.querySelector('.skip-btn');
             if (startStopBtn) startStopBtn.onclick = (e) => { e.preventDefault(); GlobalAudioPlayer.togglePlay(); };
-            if (skipBtn) skipBtn.onclick = (e) => { e.preventDefault(); GlobalAudioPlayer.playNext(); };
+            if (skipBtn) skipBtn.onclick = (e) => { e.preventDefault(); GlobalAudioPlayer.playNext(true); };
 
             d.style.cursor = 'pointer'; d.style.pointerEvents = 'auto';
             d.onclick = () => {
@@ -1407,16 +1426,16 @@ const PageManager = {
                 const aud = this.playSfx(files[idx]);
                 active = true; btn.style.cursor = 'default';
 
-                // DUCK AUDIO
-                if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.setVolume(0.1);
-                if (typeof GlobalMixer !== 'undefined') GlobalMixer.setMasterVolume(0.1);
+                // DUCK AUDIO (Fade)
+                if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.fadeTo(0.1, 400);
+                if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(0.1, 400);
 
                 head.classList.add('talking');
                 idx++;
                 aud.onended = () => {
                     // RESTORE AUDIO
                     if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.fadeTo(GlobalAudioPlayer.defaultVolume, 2000);
-                    if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 2);
+                    if (typeof GlobalMixer !== 'undefined') GlobalMixer.fadeTo(1.0, 2000);
 
                     head.classList.remove('talking'); active = false; btn.style.cursor = 'pointer';
                     if (idx >= files.length) {
