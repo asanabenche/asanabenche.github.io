@@ -559,7 +559,7 @@ const PageManager = {
         const path = window.location.pathname;
         const page = path.split('/').pop() || 'index.html';
 
-        if (page === 'index.html' || page === '') this.initHome();
+        if (page === 'index.html' || page === '') await this.initHome();
         else if (page.includes('shop')) this.initShop();
         else if (page.includes('watch')) this.initWatch();
         else if (page.includes('listening')) this.initListen();
@@ -787,7 +787,7 @@ const PageManager = {
         return Promise.all(promises);
     },
 
-    initHome() {
+    async initHome() {
         // --- TACO SEQUENCE PRELOAD & HELPERS ---
         // Preload Taco Assets Loop
         const interval = setInterval(() => {
@@ -833,8 +833,8 @@ const PageManager = {
         }
         this.syncHomeIndicators();
 
-        // Check Eggs/Scroll/Totem Status on Load
-        this.checkHomeState();
+        // Check Eggs/Scroll/Totem Status on Load - AWAIT to ensure eggs render before transition
+        await this.checkHomeState();
 
 
         // --- APPLE PHYSICS ---
@@ -886,7 +886,7 @@ const PageManager = {
     },
 
     // --- HELPER: HOME STATE --
-    checkHomeState() {
+    async checkHomeState() {
         const eggs = [
             { key: 'shopEggStatus', element: document.querySelector('.shop-egg') },
             { key: 'lessonsEggStatus', element: document.querySelector('.lessons-egg') },
@@ -904,12 +904,28 @@ const PageManager = {
             return false;
         });
         unlockedEggs.sort((a, b) => a.order - b.order);
+
+        // Show eggs and wait for their images to decode
+        const decodePromises = [];
         unlockedEggs.forEach((egg, index) => {
             if (egg.element) {
                 egg.element.style.display = 'block';
                 egg.element.classList.add(`egg-slot-${index + 1}`);
+
+                // Get the img inside and decode it
+                const img = egg.element.querySelector('img');
+                if (img) {
+                    decodePromises.push(
+                        img.decode().catch(e => console.log('Egg decode warning:', e))
+                    );
+                }
             }
         });
+
+        // Wait for all egg images to be decoded before continuing
+        if (decodePromises.length > 0) {
+            await Promise.all(decodePromises);
+        }
 
         // Basket State (Log only)
         const count = parseInt(sessionStorage.getItem('eggUnlockCounter') || '0');
