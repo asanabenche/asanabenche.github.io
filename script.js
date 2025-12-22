@@ -155,9 +155,26 @@ const GlobalAudioPlayer = {
 
     togglePlay() {
         if (this.isPlaying) {
-            this.audio.pause();
+            // Fade out then pause to prevent clicks
+            const FADE_MS = 150;
+            const EPSILON = 0.0001;
+
             this.isPlaying = false;
             this.updateUI();
+
+            if (this.ctx && this.gainNode) {
+                const now = this.ctx.currentTime;
+                this.gainNode.gain.cancelScheduledValues(now);
+                this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+                this.gainNode.gain.exponentialRampToValueAtTime(EPSILON, now + (FADE_MS / 1000));
+
+                setTimeout(() => {
+                    this.audio.pause();
+                    // Leave gain at EPSILON - will restore when playing
+                }, FADE_MS + 50);
+            } else {
+                this.audio.pause();
+            }
         } else {
             // EXCLUSIVITY: Stop Lessons Mixer
             if (typeof GlobalMixer !== 'undefined' && GlobalMixer.isActive()) {
@@ -166,6 +183,12 @@ const GlobalAudioPlayer = {
             // Ensure context is running
             if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
 
+            // Restore gain (pause leaves it at EPSILON)
+            if (this.ctx && this.gainNode) {
+                this.gainNode.gain.cancelScheduledValues(this.ctx.currentTime);
+                this.gainNode.gain.setValueAtTime(this.defaultVolume, this.ctx.currentTime);
+            }
+
             this.audio.play()
                 .then(() => {
                     this.isPlaying = true;
@@ -173,16 +196,32 @@ const GlobalAudioPlayer = {
                 })
                 .catch(e => {
                     console.error("Playback failed:", e);
-                    // Don't update isPlaying on failure
                 });
         }
     },
 
     stop() {
         if (!this.isPlaying) return;
-        this.audio.pause();
+
+        const FADE_MS = 150;
+        const EPSILON = 0.0001;
+
         this.isPlaying = false;
         this.updateUI();
+
+        if (this.ctx && this.gainNode) {
+            const now = this.ctx.currentTime;
+            this.gainNode.gain.cancelScheduledValues(now);
+            this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+            this.gainNode.gain.exponentialRampToValueAtTime(EPSILON, now + (FADE_MS / 1000));
+
+            setTimeout(() => {
+                this.audio.pause();
+                // Leave gain at EPSILON - will restore when playing
+            }, FADE_MS + 50);
+        } else {
+            this.audio.pause();
+        }
     },
 
     setVolume(vol) {
