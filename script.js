@@ -723,16 +723,20 @@ const PageManager = {
             };
 
             // Wait for browser to actually paint after decode
+            // Uses double RAF + timing buffer for iPad
             const waitForPaint = () => {
                 return new Promise(resolve => {
                     requestAnimationFrame(() => {
-                        requestAnimationFrame(resolve);
+                        requestAnimationFrame(() => {
+                            // Extra timing buffer for iPad GPU compositing
+                            setTimeout(resolve, 50);
+                        });
                     });
                 });
             };
 
             try {
-                if (bgImg.complete) {
+                if (bgImg.complete && bgImg.naturalWidth > 0) {
                     await decodeWithTimeout(bgImg);
                 } else {
                     await new Promise((resolve) => {
