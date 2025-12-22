@@ -1767,6 +1767,12 @@ const PageManager = {
                 this.registerTimeout(() => fd.static.style.visibility = 'hidden', 50);
                 this.registerTimeout(() => { fd.static.style.visibility = 'visible'; fd.anim.style.display = 'none'; }, 700);
 
+                // Play audio for this flower
+                const audioSrc = fd.element.getAttribute('data-audio');
+                if (audioSrc) {
+                    this.playSfx(audioSrc);
+                }
+
                 // Sequence Logic
                 clearTimeout(sequenceTimer);
                 hoverSequence.push(flowerIndex);
