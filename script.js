@@ -985,7 +985,9 @@ const PageManager = {
         const SPRING_STRENGTH = 0.03;   // How strongly it pulls back toward 0
         const SPRING_DAMPING = 0.92;    // Damping for spring oscillation
         const RPS_THRESHOLD = 6.0;      // Revolutions per second needed to trigger image swap (requires fast spin)
-        const SPRING_ENGAGE_VELOCITY = 3.0;  // Spring only engages when velocity drops below this
+        const SPRING_ENGAGE_VELOCITY = 1.5;  // Spring only engages when velocity drops below this (lowered for later engagement)
+        const SPRING_RAMP_FRAMES = 15;  // Number of frames to fully ramp up spring force
+        let springEngageProgress = 0;   // 0 = no spring, 1 = full spring (gradual ramp-up)
 
         // Bird image array - add more birds here as needed
         const BIRD_IMAGES = [
@@ -1031,19 +1033,30 @@ const PageManager = {
                 return;
             }
 
-            // Only apply spring force once velocity has slowed down enough
+            // Stepwise spring engagement - gradually ramp up/down spring influence
             if (Math.abs(state.velocity) < SPRING_ENGAGE_VELOCITY) {
+                // Below threshold: gradually increase spring engagement
+                springEngageProgress = Math.min(1, springEngageProgress + (1 / SPRING_RAMP_FRAMES));
+            } else {
+                // Above threshold: gradually decrease spring engagement (or reset)
+                springEngageProgress = Math.max(0, springEngageProgress - (1 / SPRING_RAMP_FRAMES));
+            }
+
+            // Blend between friction-only and spring physics based on engagement progress
+            if (springEngageProgress > 0) {
                 // Normalize rotation to -180 to 180 range for shortest path to 0
                 while (state.rotation > 180) state.rotation -= 360;
                 while (state.rotation < -180) state.rotation += 360;
 
-                // Apply spring force toward 0 via shortest path
-                const springForce = -state.rotation * SPRING_STRENGTH;
+                // Apply spring force scaled by engagement progress (stepwise augmentation)
+                const springForce = -state.rotation * SPRING_STRENGTH * springEngageProgress;
                 state.velocity += springForce;
-                // Apply spring damping
-                state.velocity *= SPRING_DAMPING;
+
+                // Blend damping: mix between friction and spring damping based on progress
+                const blendedDamping = FRICTION + (SPRING_DAMPING - FRICTION) * springEngageProgress;
+                state.velocity *= blendedDamping;
             } else {
-                // While spinning fast, just apply friction (let it spin freely)
+                // While spinning fast with no spring engagement, just apply friction
                 state.velocity *= FRICTION;
             }
 
@@ -1073,6 +1086,7 @@ const PageManager = {
             state.lastX = x;
             state.lastTime = performance.now();
             state.velocity = 0; // Stop any ongoing spin
+            springEngageProgress = 0; // Reset spring ramp-up for fresh swipe
 
             // Start animation loop if not running
             if (!state.animationId) {
