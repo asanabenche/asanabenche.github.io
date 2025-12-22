@@ -156,6 +156,8 @@ const GlobalAudioPlayer = {
     togglePlay() {
         if (this.isPlaying) {
             this.audio.pause();
+            this.isPlaying = false;
+            this.updateUI();
         } else {
             // EXCLUSIVITY: Stop Lessons Mixer
             if (typeof GlobalMixer !== 'undefined' && GlobalMixer.isActive()) {
@@ -164,10 +166,16 @@ const GlobalAudioPlayer = {
             // Ensure context is running
             if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
 
-            this.audio.play().catch(e => console.error("Playback failed:", e));
+            this.audio.play()
+                .then(() => {
+                    this.isPlaying = true;
+                    this.updateUI();
+                })
+                .catch(e => {
+                    console.error("Playback failed:", e);
+                    // Don't update isPlaying on failure
+                });
         }
-        this.isPlaying = !this.isPlaying;
-        this.updateUI();
     },
 
     stop() {
@@ -667,15 +675,28 @@ const PageManager = {
         // DOUBLE CHECK: Ensure the ACTUAL background in DOM is decoded
         const bgImg = document.querySelector('.background-img') || document.querySelector('.home-bg');
         if (bgImg) {
+            // Timeout wrapper to prevent infinite stall
+            const decodeWithTimeout = (img, timeoutMs = 5000) => {
+                return Promise.race([
+                    img.decode().catch(() => { }), // silently resolve on error
+                    new Promise(resolve => setTimeout(resolve, timeoutMs)) // timeout fallback
+                ]);
+            };
+
             try {
                 if (bgImg.complete) {
-                    await bgImg.decode();
+                    await decodeWithTimeout(bgImg);
                 } else {
-                    await new Promise((resolve, reject) => {
+                    await new Promise((resolve) => {
+                        const timeout = setTimeout(resolve, 5000); // 5s max wait
                         bgImg.onload = () => {
-                            bgImg.decode().then(resolve).catch(resolve);
+                            clearTimeout(timeout);
+                            decodeWithTimeout(bgImg).then(resolve);
                         };
-                        bgImg.onerror = resolve;
+                        bgImg.onerror = () => {
+                            clearTimeout(timeout);
+                            resolve();
+                        };
                     });
                 }
             } catch (e) {
