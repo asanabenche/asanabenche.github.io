@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watch</title>
 
+    <!-- DNS Prefetch for faster cold starts -->
+    <link rel="dns-prefetch" href="//asanabenche.github.io">
+
     <!-- Link to your CSS file -->
     <link rel="stylesheet" href="styles.css">
 
@@ -44,7 +47,8 @@
         </div>
 
         <div class="skater-flat">
-            <img src="images/Watch/skaterFlat.png" alt="Skater Flat" class="overlay-img" loading="lazy">
+            <img src="images/Watch/skaterFlat.png" alt="Skater Flat" class="overlay-img" loading="lazy"
+                decoding="async">
         </div>
 
         <div class="no-skating">
@@ -52,7 +56,7 @@
         </div>
 
         <div class="police-car">
-            <img src="images/Watch/policeCar.png" alt="Police Car" class="overlay-img" loading="lazy">
+            <img src="images/Watch/policeCar.png" alt="Police Car" class="overlay-img" loading="lazy" decoding="async">
         </div>
         <div class="video-container">
             <iframe width="100%" height="100%" src="https://www.youtube.com/embed/OD4CZDiYA4s"
@@ -64,7 +68,7 @@
         <!-- Add watch page specific buttons here if needed later -->
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
 
 </html>

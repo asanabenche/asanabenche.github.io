@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
 
+    <!-- DNS Prefetch for faster cold starts -->
+    <link rel="dns-prefetch" href="//asanabenche.github.io">
+
     <!-- Link to your CSS file -->
     <link rel="stylesheet" href="styles.css">
 
@@ -78,11 +81,12 @@
             </div>
 
             <!-- Physics Apple -->
-            <img src="images/Home/apple.png" alt="Physics Apple" class="physics-apple" loading="lazy">
+            <img src="images/Home/apple.png" alt="Physics Apple" class="physics-apple" loading="lazy" decoding="async">
 
             <!-- Birdhouse Hole -->
             <div class="birdhouse-hole">
-                <img src="images/Home/birdhouseHole.png" alt="Birdhouse Hole" class="overlay-img" loading="lazy">
+                <img src="images/Home/birdhouseHole.png" alt="Birdhouse Hole" class="overlay-img" loading="lazy"
+                    decoding="async">
             </div>
 
             <!-- Contact Corner -->
@@ -92,31 +96,35 @@
 
             <!-- Cardinal Head -->
             <div class="cardinal-head">
-                <img src="images/Home/cardinalHead.png" alt="Cardinal Head" class="overlay-img" loading="lazy">
+                <img src="images/Home/cardinalHead.png" alt="Cardinal Head" class="overlay-img" loading="lazy"
+                    decoding="async">
             </div>
 
             <!-- Watch Egg (Initially Hidden) -->
             <div class="watch-egg egg">
-                <img src="images/Home/watchEgg.png" alt="Watch Egg" class="overlay-img" loading="lazy">
+                <img src="images/Home/watchEgg.png" alt="Watch Egg" class="overlay-img" loading="lazy" decoding="async">
             </div>
 
             <!-- Contact Egg (Initially Hidden) -->
             <div class="contact-egg egg">
-                <img src="images/Home/contactEgg.png" alt="Contact Egg" class="overlay-img" loading="lazy">
+                <img src="images/Home/contactEgg.png" alt="Contact Egg" class="overlay-img" loading="lazy"
+                    decoding="async">
             </div>
 
             <!-- Shop Egg (Initially Hidden) -->
             <div class="shop-egg egg">
-                <img src="images/Home/shopEgg.png" alt="Shop Egg" class="overlay-img" loading="lazy">
+                <img src="images/Home/shopEgg.png" alt="Shop Egg" class="overlay-img" loading="lazy" decoding="async">
             </div>
 
             <!-- Lessons Egg (Initially Hidden) -->
             <div class="lessons-egg egg">
-                <img src="images/Home/lessonsEgg.png" alt="Lessons Egg" class="overlay-img" loading="lazy">
+                <img src="images/Home/lessonsEgg.png" alt="Lessons Egg" class="overlay-img" loading="lazy"
+                    decoding="async">
             </div>
             <!-- Listen Egg (Initially Hidden) -->
             <div class="listen-egg egg">
-                <img src="images/Home/listenEgg.png" alt="Listen Egg" class="overlay-img" loading="lazy">
+                <img src="images/Home/listenEgg.png" alt="Listen Egg" class="overlay-img" loading="lazy"
+                    decoding="async">
             </div>
 
             <div class="basket-top">
@@ -141,12 +149,12 @@
             <!-- Taco Truck (Hidden by default) -->
             <div class="taco-truck-driving" style="display: none;">
                 <img src="images/Home/tacoDriving.gif" alt="Taco Truck" class="overlay-img" id="tacoTruckGif"
-                    loading="lazy">
+                    loading="lazy" decoding="async">
             </div>
 
             <!-- Scroll Item (Hidden initially) -->
             <div class="scroll-item" style="display: none;">
-                <img src="images/Home/scroll.png" alt="Scroll" class="overlay-img" loading="lazy">
+                <img src="images/Home/scroll.png" alt="Scroll" class="overlay-img" loading="lazy" decoding="async">
             </div>
 
             <!-- Taco Recipe Modal -->
@@ -183,7 +191,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
 
 </html>

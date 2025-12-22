@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listening Room</title>
 
+    <!-- DNS Prefetch for faster cold starts -->
+    <link rel="dns-prefetch" href="//asanabenche.github.io">
+
     <!-- Link to your CSS file -->
     <link rel="stylesheet" href="styles.css">
 
@@ -51,13 +54,15 @@
 
         <!-- Music Animations (Hidden by default via CSS scale) -->
         <div class="music-anim purple-sound">
-            <img src="images/Listen/purpleSound.gif" alt="Music Anim" class="overlay-img" loading="lazy">
+            <img src="images/Listen/purpleSound.gif" alt="Music Anim" class="overlay-img" loading="lazy"
+                decoding="async">
         </div>
         <div class="music-anim yellow-sound">
-            <img src="images/Listen/yellowSound.gif" alt="Music Anim" class="overlay-img" loading="lazy">
+            <img src="images/Listen/yellowSound.gif" alt="Music Anim" class="overlay-img" loading="lazy"
+                decoding="async">
         </div>
         <div class="music-anim red-sound">
-            <img src="images/Listen/redSound.gif" alt="Music Anim" class="overlay-img" loading="lazy">
+            <img src="images/Listen/redSound.gif" alt="Music Anim" class="overlay-img" loading="lazy" decoding="async">
         </div>
 
         <!-- Dynamic Popup Image Container -->
@@ -66,7 +71,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
 
 </html>

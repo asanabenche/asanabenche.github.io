@@ -4,6 +4,7 @@
     src: url('fonts/headerFont.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
 }
 
 /* Define the Body Font */
@@ -12,6 +13,7 @@
     src: url('fonts/bodyFont.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
 }
 
 /* Remove default margin */
