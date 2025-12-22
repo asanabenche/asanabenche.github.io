@@ -1740,6 +1740,16 @@ const PageManager = {
 
     // --- OTHER PAGE INITS ---
     initShop() {
+        // Preload flower audio for iOS swipe support
+        if (typeof GlobalAudioPlayer !== 'undefined') {
+            GlobalAudioPlayer.preloadSfx([
+                'audioFiles/shopAudio/Flower01.wav',
+                'audioFiles/shopAudio/Flower02.wav',
+                'audioFiles/shopAudio/Flower03.wav',
+                'audioFiles/shopAudio/Flower04.wav'
+            ]);
+        }
+
         // Flowers
         let hoverSequence = [];
         const correctSequence = [4, 3, 2, 1];
@@ -1829,8 +1839,23 @@ const PageManager = {
         // so audio can play during subsequent touchmove (not a valid gesture for audio unlock)
         const handleTouchStart = () => {
             if (typeof GlobalAudioPlayer !== 'undefined' && GlobalAudioPlayer.ctx) {
-                if (GlobalAudioPlayer.ctx.state === 'suspended') {
-                    GlobalAudioPlayer.ctx.resume();
+                const ctx = GlobalAudioPlayer.ctx;
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+
+                // iOS fix: Play a silent oscillator to fully unlock audio playback
+                // This is more reliable than just resume() on some iOS versions
+                try {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    gain.gain.value = 0; // Silent
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(0);
+                    osc.stop(ctx.currentTime + 0.001);
+                } catch (e) {
+                    // Ignore errors, this is just an unlock attempt
                 }
             }
         };
