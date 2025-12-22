@@ -1825,15 +1825,27 @@ const PageManager = {
             swipeTriggeredFlowers.clear();
         };
 
+        // iOS Safari workaround: unlock audio context on touchstart (valid gesture)
+        // so audio can play during subsequent touchmove (not a valid gesture for audio unlock)
+        const handleTouchStart = () => {
+            if (typeof GlobalAudioPlayer !== 'undefined' && GlobalAudioPlayer.ctx) {
+                if (GlobalAudioPlayer.ctx.state === 'suspended') {
+                    GlobalAudioPlayer.ctx.resume();
+                }
+            }
+        };
+
         // Attach to flower-cluster zone (covers all flowers)
         const flowerCluster = document.querySelector('.flower-cluster');
         if (flowerCluster) {
+            flowerCluster.addEventListener('touchstart', handleTouchStart, { passive: true });
             flowerCluster.addEventListener('touchmove', handleTouchMove, { passive: true });
             flowerCluster.addEventListener('touchend', handleTouchEnd, { passive: true });
         }
 
         // Also attach to each flower directly for robustness
         for (const fd of flowerData) {
+            fd.element.addEventListener('touchstart', handleTouchStart, { passive: true });
             fd.element.addEventListener('touchmove', handleTouchMove, { passive: true });
             fd.element.addEventListener('touchend', handleTouchEnd, { passive: true });
         }
