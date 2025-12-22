@@ -722,6 +722,15 @@ const PageManager = {
                 ]);
             };
 
+            // Wait for browser to actually paint after decode
+            const waitForPaint = () => {
+                return new Promise(resolve => {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(resolve);
+                    });
+                });
+            };
+
             try {
                 if (bgImg.complete) {
                     await decodeWithTimeout(bgImg);
@@ -738,6 +747,10 @@ const PageManager = {
                         };
                     });
                 }
+
+                // IPAD FIX: Wait for browser to paint the decoded image
+                await waitForPaint();
+
             } catch (e) {
                 console.log("BG Decode Warning:", e);
             }
@@ -1732,24 +1745,31 @@ const PageManager = {
         const correctSequence = [4, 3, 2, 1];
         let sequenceTimer = null;
 
+        // Store flower data for swipe detection
+        const flowerData = [];
+
         for (let i = 1; i <= 4; i++) {
             const f = document.querySelector(`.flower-${i}`);
             const s = document.querySelector(`.flower-${i}-static`);
             const a = document.querySelector(`.flower-${i}-anim`);
             if (!f || !s || !a) continue;
-            const hover = () => {
-                const animSrc = `images/Shop/Flower${i}_Anim.gif`;
-                a.src = '';
-                void a.offsetWidth; // Force Reflow to restart GIF
-                a.src = animSrc;
-                a.style.display = 'block';
+
+            const triggerFlower = (flowerIndex) => {
+                const fd = flowerData.find(d => d.index === flowerIndex);
+                if (!fd) return;
+
+                const animSrc = `images/Shop/Flower${flowerIndex}_Anim.gif`;
+                fd.anim.src = '';
+                void fd.anim.offsetWidth; // Force Reflow to restart GIF
+                fd.anim.src = animSrc;
+                fd.anim.style.display = 'block';
                 // Delay hiding static image to bridge the gap (prevent flicker)
-                this.registerTimeout(() => s.style.visibility = 'hidden', 50);
-                this.registerTimeout(() => { s.style.visibility = 'visible'; a.style.display = 'none'; }, 700);
+                this.registerTimeout(() => fd.static.style.visibility = 'hidden', 50);
+                this.registerTimeout(() => { fd.static.style.visibility = 'visible'; fd.anim.style.display = 'none'; }, 700);
 
                 // Sequence Logic
                 clearTimeout(sequenceTimer);
-                hoverSequence.push(i);
+                hoverSequence.push(flowerIndex);
 
                 if (hoverSequence.length > 4) hoverSequence.shift();
 
@@ -1764,8 +1784,52 @@ const PageManager = {
                     hoverSequence = [];
                 }, 500);
             };
-            f.addEventListener('mouseenter', hover);
-            f.addEventListener('touchstart', (e) => { hover(); }, { passive: true });
+
+            flowerData.push({ index: i, element: f, static: s, anim: a, trigger: triggerFlower });
+
+            // Mouse hover (desktop)
+            f.addEventListener('mouseenter', () => triggerFlower(i));
+
+            // Touch start (tap on single flower)
+            f.addEventListener('touchstart', () => triggerFlower(i), { passive: true });
+        }
+
+        // --- SWIPE DETECTION FOR IPAD ---
+        // Track which flowers have been triggered during the current swipe
+        let swipeTriggeredFlowers = new Set();
+
+        const handleTouchMove = (e) => {
+            if (e.touches.length === 0) return;
+            const touch = e.touches[0];
+            const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (!elementUnderTouch) return;
+
+            // Check if the element is a flower or inside a flower
+            for (const fd of flowerData) {
+                if (fd.element.contains(elementUnderTouch) && !swipeTriggeredFlowers.has(fd.index)) {
+                    swipeTriggeredFlowers.add(fd.index);
+                    fd.trigger(fd.index);
+                    break;
+                }
+            }
+        };
+
+        const handleTouchEnd = () => {
+            swipeTriggeredFlowers.clear();
+        };
+
+        // Attach to flower-cluster zone (covers all flowers)
+        const flowerCluster = document.querySelector('.flower-cluster');
+        if (flowerCluster) {
+            flowerCluster.addEventListener('touchmove', handleTouchMove, { passive: true });
+            flowerCluster.addEventListener('touchend', handleTouchEnd, { passive: true });
+        }
+
+        // Also attach to each flower directly for robustness
+        for (const fd of flowerData) {
+            fd.element.addEventListener('touchmove', handleTouchMove, { passive: true });
+            fd.element.addEventListener('touchend', handleTouchEnd, { passive: true });
         }
     },
 
