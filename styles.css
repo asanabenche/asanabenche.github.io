@@ -112,8 +112,6 @@ body.loading .page-transition {
     filter: brightness(1.8);
 }
 
-<<<<<<< Updated upstream
-=======
 /* --- GLOBAL AUDIO INDICATOR (Subpages) --- */
 .global-audio-indicator {
     position: absolute;
@@ -137,7 +135,6 @@ body.loading .page-transition {
     filter: brightness(1.2);
 }
 
->>>>>>> Stashed changes
 /* --- GLOBAL STYLES --- */
 
 .bg-wrapper {
