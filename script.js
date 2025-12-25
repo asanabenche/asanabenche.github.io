@@ -802,8 +802,6 @@ const PageManager = {
                 this.registerTimeout(() => element.classList.remove('shaking'), 1000);
             });
         });
-<<<<<<< Updated upstream
-=======
 
         // --- GLOBAL AUDIO INDICATOR (Subpages) ---
         const globalIndicator = document.getElementById('globalAudioIndicator');
@@ -820,7 +818,6 @@ const PageManager = {
             // Sync visibility on page load
             this.syncHomeIndicators();
         }
->>>>>>> Stashed changes
     },
 
     determinePageAssets() {
@@ -1176,8 +1173,6 @@ const PageManager = {
 
     // --- HELPER: HOME STATE --
     async checkHomeState() {
-<<<<<<< Updated upstream
-=======
         // Timeout wrapper to prevent Safari hang on cached/lazy images
         const decodeWithTimeout = (img, timeoutMs = 2000) => {
             return Promise.race([
@@ -1186,7 +1181,6 @@ const PageManager = {
             ]);
         };
 
->>>>>>> Stashed changes
         const eggs = [
             { key: 'shopEggStatus', element: document.querySelector('.shop-egg') },
             { key: 'lessonsEggStatus', element: document.querySelector('.lessons-egg') },
@@ -1212,19 +1206,10 @@ const PageManager = {
                 egg.element.style.display = 'block';
                 egg.element.classList.add(`egg-slot-${index + 1}`);
 
-<<<<<<< Updated upstream
-                // Get the img inside and decode it
-                const img = egg.element.querySelector('img');
-                if (img) {
-                    decodePromises.push(
-                        img.decode().catch(e => console.log('Egg decode warning:', e))
-                    );
-=======
                 // Get the img inside and decode it with timeout protection
                 const img = egg.element.querySelector('img');
                 if (img) {
                     decodePromises.push(decodeWithTimeout(img));
->>>>>>> Stashed changes
                 }
             }
         });
@@ -1267,26 +1252,6 @@ const PageManager = {
     },
 
     syncHomeIndicators() {
-<<<<<<< Updated upstream
-        // Find Home Indicator
-        const indicator = document.getElementById('homeAudioIndicator');
-
-        if (indicator) {
-            const isPlaying = typeof GlobalAudioPlayer !== 'undefined' && GlobalAudioPlayer.isPlaying;
-            const isLessonsActive = typeof GlobalMixer !== 'undefined' && GlobalMixer.isActive();
-
-            if (isPlaying) {
-                // Remove others, add Listen
-                indicator.classList.remove('pos-lessons');
-                indicator.classList.add('pos-listen', 'visible');
-            } else if (isLessonsActive) {
-                // Remove others, add Lessons
-                indicator.classList.remove('pos-listen');
-                indicator.classList.add('pos-lessons', 'visible');
-            } else {
-                // Just hide, keep position for smooth scale-out
-                indicator.classList.remove('visible');
-=======
         const homeIndicator = document.getElementById('homeAudioIndicator');
         const globalIndicator = document.getElementById('globalAudioIndicator');
 
@@ -1313,7 +1278,6 @@ const PageManager = {
                 globalIndicator.classList.add('visible');
             } else {
                 globalIndicator.classList.remove('visible');
->>>>>>> Stashed changes
             }
         }
     },
