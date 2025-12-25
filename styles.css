@@ -112,6 +112,32 @@ body.loading .page-transition {
     filter: brightness(1.8);
 }
 
+<<<<<<< Updated upstream
+=======
+/* --- GLOBAL AUDIO INDICATOR (Subpages) --- */
+.global-audio-indicator {
+    position: absolute;
+    top: 7.5%;
+    left: 16.2%;
+    width: 5.8%;
+    z-index: 10;
+    pointer-events: auto;
+    cursor: pointer;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    will-change: transform;
+}
+
+.global-audio-indicator.visible {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.global-audio-indicator:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    filter: brightness(1.2);
+}
+
+>>>>>>> Stashed changes
 /* --- GLOBAL STYLES --- */
 
 .bg-wrapper {
