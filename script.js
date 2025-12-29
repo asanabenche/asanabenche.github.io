@@ -527,27 +527,53 @@ const SpaRouter = {
     },
 
     navigate(url) {
-        // Show Preloader Transition
+        // Show Preloader Transition (fade to black)
         const transitionEl = document.querySelector('.page-transition');
+        const loadingEggs = document.querySelector('.loading-eggs');
         if (transitionEl) transitionEl.classList.remove('hidden');
+
+        // Start with eggs hidden - they'll fade in after fade-to-black completes
+        if (loadingEggs) {
+            loadingEggs.classList.remove('fading-out', 'visible');
+            loadingEggs.style.display = 'none';
+        }
 
         // Start cleanup immediately
         PageManager.cleanup();
 
-        // Start fetching content IMMEDIATELY (parallel with transition)
+        // Start fetching content IMMEDIATELY (parallel with fade-out)
         const contentPromise = this.fetchContent(url);
 
-        // Wait for BOTH transition AND content to be ready
-        const transitionPromise = new Promise(resolve => setTimeout(resolve, 300));
+        // Wait for fade-to-black to complete (0.3s CSS transition + buffer)
+        const FADE_OUT_MS = 350;
 
-        Promise.all([transitionPromise, contentPromise])
-            .then(([_, contentData]) => {
-                this.swapContent(contentData, url, true);
-            })
-            .catch(err => {
+        setTimeout(() => {
+            // After fade-out, show eggs container then trigger fade-in
+            if (loadingEggs) {
+                loadingEggs.style.display = '';
+                // Small delay for display change to take effect before opacity transition
+                requestAnimationFrame(() => {
+                    loadingEggs.classList.add('visible');
+                });
+            }
+
+            // Wait for content to be ready
+            contentPromise.then(contentData => {
+                // Step 1: Fade out eggs quickly
+                if (loadingEggs) {
+                    loadingEggs.classList.remove('visible');
+                    loadingEggs.classList.add('fading-out');
+                }
+
+                // Step 2: After eggs fade out, swap content
+                setTimeout(() => {
+                    this.swapContent(contentData, url, true);
+                }, 650); // Wait for 0.6s fade-out + buffer
+            }).catch(err => {
                 console.error("Navigation failed:", err);
-                window.location.href = url; // Fallback to hard reload
+                window.location.href = url;
             });
+        }, FADE_OUT_MS);
     },
 
     async fetchContent(url) {
@@ -570,11 +596,15 @@ const SpaRouter = {
         document.title = newTitle;
         document.body.innerHTML = newBody.innerHTML;
 
+        // Hide the new page's eggs immediately to prevent flash
+        const newLoadingEggs = document.querySelector('.loading-eggs');
+        if (newLoadingEggs) newLoadingEggs.style.display = 'none';
+
         if (pushState) {
             window.history.pushState({}, '', url);
         }
 
-        // Re-Initialize Page Logic
+        // Re-Initialize Page Logic (this will add .hidden via double RAF for smooth fade)
         await PageManager.init();
     },
 
@@ -2126,5 +2156,25 @@ const PageManager = {
 document.addEventListener('DOMContentLoaded', () => {
     GlobalAudioPlayer.init();
     SpaRouter.init();
-    PageManager.init();
+
+    // Initial page load: show loading eggs if init takes longer than 500ms
+    const loadingEggs = document.querySelector('.loading-eggs');
+    let initComplete = false;
+
+    const loadingTimeout = setTimeout(() => {
+        if (!initComplete && loadingEggs) {
+            loadingEggs.classList.add('visible');
+        }
+    }, 500);
+
+    PageManager.init().then(() => {
+        initComplete = true;
+        clearTimeout(loadingTimeout);
+        // Hide loading eggs when page is ready
+        if (loadingEggs) loadingEggs.classList.remove('visible');
+    }).catch(() => {
+        initComplete = true;
+        clearTimeout(loadingTimeout);
+        if (loadingEggs) loadingEggs.classList.remove('visible');
+    });
 });
