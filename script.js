@@ -537,12 +537,11 @@ const SpaRouter = {
             loadingEggs.classList.remove('fading-out', 'visible');
             loadingEggs.style.display = '';
 
-            // Reset GIF to start from beginning
+            // Reset GIF to start from beginning using cache-busting
             const eggGif = loadingEggs.querySelector('.loading-egg-gif');
             if (eggGif) {
-                const src = eggGif.src;
-                eggGif.src = '';
-                eggGif.src = src;
+                const baseSrc = eggGif.src.split('?')[0]; // Remove any existing query params
+                eggGif.src = baseSrc + '?t=' + Date.now();
             }
         }
 
