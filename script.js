@@ -567,24 +567,29 @@ const SpaRouter = {
                 });
             }
 
-            // Wait for content to be ready
-            contentPromise.then(data => {
-                // Calculate how long eggs have been visible
+            // Wait for HTML content to be fetched
+            contentPromise.then(async data => {
+                // Swap content and wait for PageManager.init (which preloads images)
+                // This keeps eggs visible until new page is FULLY ready
+                await this.swapContentWithoutFade(data, url, true);
+
+                // Now the new page is ready - calculate remaining egg time
                 const eggsVisibleTime = Date.now() - eggsShownAt - FADE_OUT_MS;
                 const remainingTime = Math.max(0, MIN_EGGS_DISPLAY_MS - eggsVisibleTime);
 
                 // Wait for minimum display time, then fade out eggs
                 setTimeout(() => {
-                    // Start eggs fading out
+                    // Fade out eggs
                     if (loadingEggs) {
                         loadingEggs.classList.remove('visible');
                         loadingEggs.classList.add('fading-out');
                     }
 
-                    // Wait for eggs to fade out (0.6s), then swap content
+                    // Wait for eggs to fade out, then reveal page
                     setTimeout(() => {
-                        this.swapContent(data, url, true);
-                    }, 600); // Exactly matches egg fade-out duration
+                        const transitionEl = document.querySelector('.page-transition');
+                        if (transitionEl) transitionEl.classList.add('hidden');
+                    }, 600);
                 }, remainingTime);
             }).catch(err => {
                 console.error("Navigation failed:", err);
@@ -635,6 +640,34 @@ const SpaRouter = {
         await PageManager.init();
     },
 
+    async swapContentWithoutFade(contentData, url, pushState = true) {
+        const { body: newBody, title: newTitle } = contentData;
+
+        // Preserve the current transition element (keeps eggs animating)
+        // MUST detach it BEFORE innerHTML replacement or it gets destroyed
+        const oldTransition = document.querySelector('.page-transition');
+        if (oldTransition) oldTransition.remove();
+
+        document.title = newTitle;
+        document.body.innerHTML = newBody.innerHTML;
+
+        // Remove the new page's transition (we're using the old one)
+        const newTransition = document.querySelector('.page-transition');
+        if (newTransition) newTransition.remove();
+
+        // Re-add the old transition (with eggs still animating)
+        if (oldTransition) {
+            document.body.insertBefore(oldTransition, document.body.firstChild);
+        }
+
+        if (pushState) {
+            window.history.pushState({}, '', url);
+        }
+
+        // Re-Initialize Page Logic WITHOUT adding .hidden (we'll do that later after eggs fade)
+        await PageManager.initWithoutFade();
+    },
+
     async loadContent(url, pushState = true) {
         // Used for popstate (back/forward) - keep sequential behavior for simplicity
         try {
@@ -680,6 +713,30 @@ const PageManager = {
                 if (transitionEl) transitionEl.classList.add('hidden');
             });
         });
+    },
+
+    async initWithoutFade() {
+        // Same as init but WITHOUT adding .hidden to transition
+        // Used when eggs need to fade out first before page reveals
+
+        // Universal Inits
+        await this.initCommon();
+        if (typeof GlobalAudioPlayer !== 'undefined') GlobalAudioPlayer.updateUI();
+
+        // Page Specifics
+        const path = window.location.pathname;
+        const page = path.split('/').pop() || 'index.html';
+
+        if (page === 'index.html' || page === '') await this.initHome();
+        else if (page.includes('shop')) this.initShop();
+        else if (page.includes('watch')) this.initWatch();
+        else if (page.includes('listening')) this.initListen();
+        else if (page.includes('lessons')) this.initLessons();
+        else if (page.includes('contact')) this.initContact();
+
+        // BF Cache Fix
+        document.body.classList.remove('loading');
+        // NOTE: We do NOT add .hidden here - that's handled after eggs fade
     },
 
     cleanup() {
