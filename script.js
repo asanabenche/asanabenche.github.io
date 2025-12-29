@@ -1971,9 +1971,10 @@ const PageManager = {
                 }
 
                 // Reset logic if too slow (Legacy behavior)
+                // Increased from 500ms to 800ms for Safari compatibility
                 sequenceTimer = this.registerTimeout(() => {
                     hoverSequence = [];
-                }, 500);
+                }, 800);
             };
 
             flowerData.push({ index: i, element: f, static: s, anim: a, trigger: triggerFlower });
