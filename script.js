@@ -1742,15 +1742,11 @@ const PageManager = {
 
             }
 
-
-            // Always render current state
-            apple.style.left = `${state.x}px`;
-            apple.style.top = `${state.y}px`;
-
+            // Always render current state using GPU-accelerated transforms
             const distO = Math.sqrt(state.x * state.x + state.y * state.y);
-            // Re-calculate scale or use state? Original logic recalculated scale cleanly every frame
             const scale = Math.max(0.5, Math.min(1.0, distO / (window.innerWidth * 0.8)));
-            apple.style.transform = `rotate(${state.angle}deg) scale(${scale})`;
+            // Use translate3d for GPU acceleration (smoother in Chrome)
+            apple.style.transform = `translate3d(${state.x}px, ${state.y}px, 0) rotate(${state.angle}deg) scale(${scale})`;
 
             requestAnimationFrame(updatePhysics);
         };
@@ -1761,6 +1757,10 @@ const PageManager = {
         state.y = tR.top + tR.height / 3 + window.scrollY;
 
         // Ensure visible and behind tree initially
+        // Reset left/top to 0 so translate3d works from origin
+        apple.style.left = '0';
+        apple.style.top = '0';
+        apple.style.willChange = 'transform'; // GPU optimization hint
         apple.style.zIndex = "1";
         apple.style.display = 'block';
 
