@@ -1843,13 +1843,6 @@ body.loading .page-transition {
     height: auto;
 }
 
-.loading-hatching-gif {
-    width: 400px;
-    height: auto;
-    margin-top: -200px;
-    /* Strong overlap to compensate for GIF transparent borders */
-}
-
 /* Audio Interaction Styles */
 @keyframes pulse-brightness {
     0% {

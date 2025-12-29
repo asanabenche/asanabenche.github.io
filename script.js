@@ -532,60 +532,55 @@ const SpaRouter = {
         const loadingEggs = document.querySelector('.loading-eggs');
         if (transitionEl) transitionEl.classList.remove('hidden');
 
-        // Start with eggs hidden
+        // Reset eggs state and show them immediately (they start at opacity 0 via CSS)
         if (loadingEggs) {
             loadingEggs.classList.remove('fading-out', 'visible');
-            loadingEggs.style.display = 'none';
+            loadingEggs.style.display = '';
         }
 
         // Start cleanup immediately
         PageManager.cleanup();
 
         // Start fetching content IMMEDIATELY (parallel with fade-out)
-        let contentData = null;
-        let contentReady = false;
-        const contentPromise = this.fetchContent(url).then(data => {
-            contentData = data;
-            contentReady = true;
-            return data;
-        });
+        const contentPromise = this.fetchContent(url);
 
         // Wait for fade-to-black to complete (0.3s CSS transition + buffer)
         const FADE_OUT_MS = 350;
+        // Minimum time eggs should be visible (ensures animation is seen)
+        const MIN_EGGS_DISPLAY_MS = 800;
+
+        const eggsShownAt = Date.now();
 
         setTimeout(() => {
-            if (contentReady) {
-                // Content loaded quickly - skip eggs animation entirely
-                this.swapContent(contentData, url, true);
-            } else {
-                // Content still loading - show eggs
-                if (loadingEggs) {
-                    loadingEggs.style.display = '';
-                    requestAnimationFrame(() => {
-                        loadingEggs.classList.add('visible');
-                    });
-                }
-
-                // Wait for content, then fade eggs out
-                contentPromise.then(data => {
-                    // Ensure eggs are visible for at least a minimum time (for the fade-in)
-                    setTimeout(() => {
-                        // Fade out eggs
-                        if (loadingEggs) {
-                            loadingEggs.classList.remove('visible');
-                            loadingEggs.classList.add('fading-out');
-                        }
-
-                        // After eggs fade out, swap content
-                        setTimeout(() => {
-                            this.swapContent(data, url, true);
-                        }, 650);
-                    }, 200); // Minimum eggs display time after fade-in starts
-                }).catch(err => {
-                    console.error("Navigation failed:", err);
-                    window.location.href = url;
+            // After fade-to-black, fade in the eggs
+            if (loadingEggs) {
+                requestAnimationFrame(() => {
+                    loadingEggs.classList.add('visible');
                 });
             }
+
+            // Wait for content to be ready
+            contentPromise.then(data => {
+                // Calculate how long eggs have been visible
+                const eggsVisibleTime = Date.now() - eggsShownAt - FADE_OUT_MS;
+                const remainingTime = Math.max(0, MIN_EGGS_DISPLAY_MS - eggsVisibleTime);
+
+                // Wait for minimum display time, then fade out eggs
+                setTimeout(() => {
+                    if (loadingEggs) {
+                        loadingEggs.classList.remove('visible');
+                        loadingEggs.classList.add('fading-out');
+                    }
+
+                    // After eggs fade out, swap content
+                    setTimeout(() => {
+                        this.swapContent(data, url, true);
+                    }, 650);
+                }, remainingTime);
+            }).catch(err => {
+                console.error("Navigation failed:", err);
+                window.location.href = url;
+            });
         }, FADE_OUT_MS);
     },
 
