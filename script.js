@@ -536,6 +536,14 @@ const SpaRouter = {
         if (loadingEggs) {
             loadingEggs.classList.remove('fading-out', 'visible');
             loadingEggs.style.display = '';
+
+            // Reset GIF to start from beginning
+            const eggGif = loadingEggs.querySelector('.loading-egg-gif');
+            if (eggGif) {
+                const src = eggGif.src;
+                eggGif.src = '';
+                eggGif.src = src;
+            }
         }
 
         // Start cleanup immediately
@@ -576,7 +584,7 @@ const SpaRouter = {
                     // Wait for eggs to fade out (0.6s), then swap content
                     setTimeout(() => {
                         this.swapContent(data, url, true);
-                    }, 650);
+                    }, 600); // Exactly matches egg fade-out duration
                 }, remainingTime);
             }).catch(err => {
                 console.error("Navigation failed:", err);
