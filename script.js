@@ -532,7 +532,7 @@ const SpaRouter = {
         const loadingEggs = document.querySelector('.loading-eggs');
         if (transitionEl) transitionEl.classList.remove('hidden');
 
-        // Start with eggs hidden - they'll fade in after fade-to-black completes
+        // Start with eggs hidden
         if (loadingEggs) {
             loadingEggs.classList.remove('fading-out', 'visible');
             loadingEggs.style.display = 'none';
@@ -542,37 +542,50 @@ const SpaRouter = {
         PageManager.cleanup();
 
         // Start fetching content IMMEDIATELY (parallel with fade-out)
-        const contentPromise = this.fetchContent(url);
+        let contentData = null;
+        let contentReady = false;
+        const contentPromise = this.fetchContent(url).then(data => {
+            contentData = data;
+            contentReady = true;
+            return data;
+        });
 
         // Wait for fade-to-black to complete (0.3s CSS transition + buffer)
         const FADE_OUT_MS = 350;
 
         setTimeout(() => {
-            // After fade-out, show eggs container then trigger fade-in
-            if (loadingEggs) {
-                loadingEggs.style.display = '';
-                // Small delay for display change to take effect before opacity transition
-                requestAnimationFrame(() => {
-                    loadingEggs.classList.add('visible');
-                });
-            }
-
-            // Wait for content to be ready
-            contentPromise.then(contentData => {
-                // Step 1: Fade out eggs quickly
+            if (contentReady) {
+                // Content loaded quickly - skip eggs animation entirely
+                this.swapContent(contentData, url, true);
+            } else {
+                // Content still loading - show eggs
                 if (loadingEggs) {
-                    loadingEggs.classList.remove('visible');
-                    loadingEggs.classList.add('fading-out');
+                    loadingEggs.style.display = '';
+                    requestAnimationFrame(() => {
+                        loadingEggs.classList.add('visible');
+                    });
                 }
 
-                // Step 2: After eggs fade out, swap content
-                setTimeout(() => {
-                    this.swapContent(contentData, url, true);
-                }, 650); // Wait for 0.6s fade-out + buffer
-            }).catch(err => {
-                console.error("Navigation failed:", err);
-                window.location.href = url;
-            });
+                // Wait for content, then fade eggs out
+                contentPromise.then(data => {
+                    // Ensure eggs are visible for at least a minimum time (for the fade-in)
+                    setTimeout(() => {
+                        // Fade out eggs
+                        if (loadingEggs) {
+                            loadingEggs.classList.remove('visible');
+                            loadingEggs.classList.add('fading-out');
+                        }
+
+                        // After eggs fade out, swap content
+                        setTimeout(() => {
+                            this.swapContent(data, url, true);
+                        }, 650);
+                    }, 200); // Minimum eggs display time after fade-in starts
+                }).catch(err => {
+                    console.error("Navigation failed:", err);
+                    window.location.href = url;
+                });
+            }
         }, FADE_OUT_MS);
     },
 
