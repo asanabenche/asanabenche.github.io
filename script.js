@@ -567,12 +567,13 @@ const SpaRouter = {
 
                 // Wait for minimum display time, then fade out eggs
                 setTimeout(() => {
+                    // Start eggs fading out
                     if (loadingEggs) {
                         loadingEggs.classList.remove('visible');
                         loadingEggs.classList.add('fading-out');
                     }
 
-                    // After eggs fade out, swap content
+                    // Wait for eggs to fade out (0.6s), then swap content
                     setTimeout(() => {
                         this.swapContent(data, url, true);
                     }, 650);
@@ -601,12 +602,22 @@ const SpaRouter = {
     async swapContent(contentData, url, pushState = true) {
         const { body: newBody, title: newTitle } = contentData;
 
+        // Preserve the current transition element (keeps eggs animating)
+        // MUST detach it BEFORE innerHTML replacement or it gets destroyed
+        const oldTransition = document.querySelector('.page-transition');
+        if (oldTransition) oldTransition.remove();
+
         document.title = newTitle;
         document.body.innerHTML = newBody.innerHTML;
 
-        // Hide the new page's eggs immediately to prevent flash
-        const newLoadingEggs = document.querySelector('.loading-eggs');
-        if (newLoadingEggs) newLoadingEggs.style.display = 'none';
+        // Remove the new page's transition (we're using the old one)
+        const newTransition = document.querySelector('.page-transition');
+        if (newTransition) newTransition.remove();
+
+        // Re-add the old transition (with eggs still fading)
+        if (oldTransition) {
+            document.body.insertBefore(oldTransition, document.body.firstChild);
+        }
 
         if (pushState) {
             window.history.pushState({}, '', url);
