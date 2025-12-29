@@ -1426,7 +1426,7 @@ const PageManager = {
             });
         }
 
-        const GRAVITY = 0.5;
+        const GRAVITY = 0.35;
         const BOUNCE = 0.7;
         const FRICTION = 0.99;
         const THROW_FORCE = 15;
@@ -1575,8 +1575,19 @@ const PageManager = {
         };
 
         // --- UPDATE LOOP ---
+        let lastPhysicsTime = performance.now();
+
         const updatePhysics = () => {
             if (apple.style.display === 'none' || !document.contains(apple)) return; // Stop if hidden (navigated away)
+
+            // Calculate delta time (capped to prevent explosion on tab switch)
+            const now = performance.now();
+            const rawDelta = now - lastPhysicsTime;
+            const delta = Math.min(rawDelta, 50); // Cap at 50ms (20fps minimum)
+            lastPhysicsTime = now;
+
+            // Normalize to 60fps baseline (16.67ms per frame)
+            const dt = delta / 16.67;
 
             if (!state.isDragging) {
                 if (state.prevPos) {
@@ -1584,7 +1595,7 @@ const PageManager = {
                 }
                 state.prevPos = { x: state.x, y: state.y };
 
-                state.vy += GRAVITY;
+                state.vy += GRAVITY * dt;
 
                 // Basket Logic (Success Check)
                 const basket = document.querySelector('.basket-bottom');
@@ -1624,11 +1635,14 @@ const PageManager = {
                     }
                 }
 
-                // Apply Physics
-                state.vx *= FRICTION; state.vy *= FRICTION;
-                state.angle += state.angularVelocity;
-                state.angularVelocity *= ANGULAR_FRICTION;
-                state.x += state.vx; state.y += state.vy;
+                // Apply Physics with delta time
+                const frictionPerFrame = Math.pow(FRICTION, dt);
+                state.vx *= frictionPerFrame;
+                state.vy *= frictionPerFrame;
+                state.angle += state.angularVelocity * dt;
+                state.angularVelocity *= Math.pow(ANGULAR_FRICTION, dt);
+                state.x += state.vx * dt;
+                state.y += state.vy * dt;
 
                 // Layering Logic (Removed in favor of timeout in startApplePhysics)
                 // if (state.y > ...)
