@@ -496,6 +496,9 @@ const SpaRouter = {
             const link = e.target.closest('a');
             if (link) {
                 const href = link.getAttribute('href');
+                const hasDownload = link.hasAttribute('download');
+                // Skip download links - let browser handle them natively
+                if (hasDownload) return;
                 if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !link.target && !href.startsWith('http')) {
                     e.preventDefault();
                     this.navigate(href);
@@ -668,6 +671,14 @@ const PageManager = {
     activeSfx: [],
     tacoAnimationPlaying: false,
     physicsCleanup: null,
+
+    // Logo variants array - add more logos here to cycle through them
+    LOGO_VARIANTS: [
+        { src: 'images/Home/asanabencheTitle.png', className: null },
+        { src: 'images/Home/asanabencheTotem.png', className: 'is-totem' }
+        // Add more logo variations here, e.g.:
+        // { src: 'images/Home/asanabencheLogo3.png', className: 'is-logo3' },
+    ],
 
     async init() {
         // Universal Inits
@@ -1073,6 +1084,18 @@ const PageManager = {
             });
         }
 
+        // Trickshot Reward Popup
+        const trickshotModal = document.getElementById('trickshotRewardModal');
+        const closeTrickshotBtn = document.querySelector('.close-trickshot');
+        if (trickshotModal && closeTrickshotBtn) {
+            closeTrickshotBtn.addEventListener('click', () => {
+                trickshotModal.style.display = 'none';
+            });
+            trickshotModal.addEventListener('click', (e) => {
+                if (e.target === trickshotModal) closeTrickshotBtn.click();
+            });
+        }
+
         // --- MOBILE BIRD SPINNING ---
         this.initMobileBirdSpin();
     },
@@ -1337,13 +1360,16 @@ const PageManager = {
             };
         }
 
-        // Totem
-        const isTotem = sessionStorage.getItem('isTotem') === 'true';
+        // Logo state restoration
+        const logoIndex = parseInt(sessionStorage.getItem('logoIndex') || '0');
         const titleDiv = document.querySelector('.home-title');
         const titleImg = titleDiv ? titleDiv.querySelector('img') : null;
-        if (isTotem && titleDiv && titleImg) {
-            titleDiv.classList.add('is-totem');
-            titleImg.src = "images/Home/asanabencheTotem.png";
+        if (titleDiv && titleImg && logoIndex > 0 && logoIndex < this.LOGO_VARIANTS.length) {
+            const variant = this.LOGO_VARIANTS[logoIndex];
+            titleImg.src = variant.src;
+            // Remove all logo classes first, then add the current one
+            this.LOGO_VARIANTS.forEach(v => { if (v.className) titleDiv.classList.remove(v.className); });
+            if (variant.className) titleDiv.classList.add(variant.className);
         }
     },
 
@@ -1713,6 +1739,12 @@ const PageManager = {
                             const deltaVx = state.vx - oldVx;
                             state.angularVelocity += deltaVx * 1.5;
 
+                            // Count only shows sign bounces for trickshot detection
+                            const isShowsSign = obj.classList.contains('shows-bound') ||
+                                obj.classList.contains('shows-bound-top') ||
+                                obj.classList.contains('shows-bound-corner');
+                            if (isShowsSign && Math.abs(dp) > 1) state.wallBounceCount++;
+
                             // FIX: Resting Threshold
                             if (wny < -0.8 && Math.abs(state.vy) < 2.0 && Math.abs(state.vx) < 2.0) {
                                 state.vy = 0;
@@ -1851,7 +1883,7 @@ const PageManager = {
 
         const titleDiv = document.querySelector('.home-title');
         const titleImg = titleDiv ? titleDiv.querySelector('img') : null;
-        const currentIsTotem = sessionStorage.getItem('isTotem') === 'true';
+        const currentLogoIndex = parseInt(sessionStorage.getItem('logoIndex') || '0');
 
         if (titleDiv) {
             titleDiv.classList.add('title-shake');
@@ -1862,19 +1894,19 @@ const PageManager = {
             titleDiv.classList.remove('title-shake');
             this.playSfx('audioFiles/homeAudio/popSound.wav');
 
-            if (currentIsTotem) {
-                console.log("Switching to Title");
-                titleImg.src = "images/Home/asanabencheTitle.png";
-                try { await titleImg.decode(); } catch (e) { }
-                titleDiv.classList.remove('is-totem');
-                sessionStorage.setItem('isTotem', 'false');
-            } else {
-                console.log("Switching to Totem");
-                titleImg.src = "images/Home/asanabencheTotem.png";
-                try { await titleImg.decode(); } catch (e) { }
-                titleDiv.classList.add('is-totem');
-                sessionStorage.setItem('isTotem', 'true');
-            }
+            // Cycle to next logo in the array
+            const nextLogoIndex = (currentLogoIndex + 1) % this.LOGO_VARIANTS.length;
+            const nextVariant = this.LOGO_VARIANTS[nextLogoIndex];
+
+            console.log(`Switching logo: index ${currentLogoIndex} -> ${nextLogoIndex}`);
+            titleImg.src = nextVariant.src;
+            try { await titleImg.decode(); } catch (e) { }
+
+            // Remove all logo classes first, then add the new one
+            this.LOGO_VARIANTS.forEach(v => { if (v.className) titleDiv.classList.remove(v.className); });
+            if (nextVariant.className) titleDiv.classList.add(nextVariant.className);
+
+            sessionStorage.setItem('logoIndex', nextLogoIndex.toString());
         }
 
         // 6. EXIT
@@ -1883,6 +1915,24 @@ const PageManager = {
         truckImg.src = "images/Home/tacoDriving.gif";
         truck.classList.add('drive-exit');
         await this.wait(2000);
+
+        // TODO: Trickshot reward download - temporarily disabled
+        // if (isTrickShot && !sessionStorage.getItem('tacoDownloadTriggered')) {
+        //     sessionStorage.setItem('tacoDownloadTriggered', 'true');
+        //     // Download implementation here
+        // }
+
+        // Show trickshot reward popup ONCE when a trickshot is achieved
+        const rewardAlreadyShown = sessionStorage.getItem('trickshotRewardShown') === 'true';
+        if (isTrickShot && !rewardAlreadyShown) {
+            console.log("Trickshot achieved - Showing reward popup");
+            sessionStorage.setItem('trickshotRewardShown', 'true');
+
+            const trickshotModal = document.getElementById('trickshotRewardModal');
+            if (trickshotModal) {
+                trickshotModal.style.display = 'flex';
+            }
+        }
 
         if (scroll) {
             scroll.style.pointerEvents = 'auto';
