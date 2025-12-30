@@ -457,26 +457,9 @@ const GlobalMixer = {
                 }, 4000);
             } else if (this.timer) { clearTimeout(this.timer); this.timer = null; }
 
-            // Sync Logic
-            const el = now - this.startT;
-            const loops = Math.floor(el / this.dur);
-            const next = this.startT + ((loops + 1) * this.dur);
-
-            if (el < 0.2) {
-                t.g.gain.setTargetAtTime(1, now, 0.05);
-                if (t.el) t.el.classList.add('active-instrument');
-            } else {
-                t.g.gain.cancelScheduledValues(now);
-                t.g.gain.setValueAtTime(0, now);
-                t.g.gain.setValueAtTime(1, next);
-
-                // Visual Delay
-                setTimeout(() => {
-                    if (t.a && t.el && document.body.contains(t.el)) {
-                        t.el.classList.add('active-instrument');
-                    }
-                }, (next - now) * 1000);
-            }
+            // Unmute immediately (no loop sync delay)
+            t.g.gain.setTargetAtTime(1, now, 0.05);
+            if (t.el) t.el.classList.add('active-instrument');
         }
 
         // Sync Home Indicators
