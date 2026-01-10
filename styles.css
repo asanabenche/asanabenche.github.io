@@ -1264,23 +1264,23 @@ body.loading .page-transition {
 }
 
 .shop-item1-btn {
-    top: 16%;
-    left: 54.5%;
-    width: 13%;
+    top: 14.7%;
+    left: 40.5%;
+    width: 20%;
     z-index: 3;
 }
 
 .shop-item2-btn {
-    top: 14%;
-    left: 40.5%;
-    width: 12%;
+    top: 15.5%;
+    left: 54.5%;
+    width: 13.7%;
     z-index: 3;
 }
 
 .shop-item3-btn {
     top: 16%;
     /* Placeholder position */
-    left: 69%;
+    left: 68%;
     width: 12%;
     z-index: 3;
 }

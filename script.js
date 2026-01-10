@@ -945,8 +945,9 @@ const PageManager = {
                 'images/Shop/shopBG.png',
                 'images/Shop/shopKeep.png',
                 'images/Shop/door.png',
-                'images/Shop/greenFront.png',
-                'images/Shop/pinkBack.png'
+                'images/Shop/shopItem1.png',
+                'images/Shop/shopItem2.png',
+                'images/Shop/shopItem3.png'
             ],
             'Watch': [
                 'images/Watch/theaterBG.png',
