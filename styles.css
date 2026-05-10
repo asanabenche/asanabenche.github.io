@@ -265,7 +265,7 @@ body.loading .page-transition {
 
 .home-title {
     position: absolute;
-    top: 3%;
+    top: 1%;
     left: 2%;
     width: 50%;
     /* Adjust size as needed */
@@ -276,6 +276,35 @@ body.loading .page-transition {
     /* Above background, below interactive menus potentially */
 }
 
+
+/* Message Bird (Decorative) */
+.message-bird {
+    position: absolute;
+    top: 1%;
+    left: 58%;
+    width: 12%;
+    z-index: 40;
+    transform: translate(-50%, 0);
+    pointer-events: none;
+}
+
+/* GoFundMe Banner (Clickable) */
+.banner-gfm {
+    position: absolute;
+    top: 9%;
+    left: 70.9%;
+    width: 14%;
+    z-index: 41;
+    transform: translate(-50%, 0);
+    transition: transform 0.25s ease, filter 0.25s ease;
+    display: block;
+}
+
+.banner-gfm:hover {
+    transform: translate(-50%, 0) scale(1.04);
+    filter: brightness(1.2);
+    cursor: pointer;
+}
 
 .home-title.title-shake {
     animation: progressive-shake 1.5s linear forwards;
@@ -2253,6 +2282,20 @@ body.loading .page-transition {
         /* Dark Brown, opaque */
         margin-top: 20px;
         /* Separation from images */
+    }
+
+    /* Mobile GoFundMe Banner */
+    .mobile-banner-gfm {
+        margin: 8px 0;
+    }
+
+    .mobile-banner-gfm .mobile-btn-img {
+        width: 50%;
+    }
+
+    .mobile-banner-gfm:active {
+        transform: scale(1.03);
+        filter: brightness(1.2);
     }
 
     .mobile-link:active {
