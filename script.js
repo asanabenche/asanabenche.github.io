@@ -1097,8 +1097,69 @@ const PageManager = {
             });
         }
 
+        // --- MAIL BUTTON ---
+        this.initMailButton();
+
         // --- MOBILE BIRD SPINNING ---
         this.initMobileBirdSpin();
+    },
+
+    // Mail Button State Management
+    initMailButton() {
+        const mailBtn = document.getElementById('mailButton');
+        const mailBtnImg = document.getElementById('mailBtnImg');
+        const mailPopup = document.getElementById('mailPopup');
+        const closeMailBtn = document.querySelector('.close-mail');
+
+        if (!mailBtn || !mailBtnImg || !mailPopup || !closeMailBtn) return;
+
+        // Check sessionStorage for read state (per-tab persistence)
+        const isRead = sessionStorage.getItem('mailRead') === 'true';
+
+        // Set initial state
+        if (isRead) {
+            mailBtn.classList.add('read');
+            mailBtn.classList.remove('unread');
+            mailBtnImg.src = 'images/Home/mailREAD.png';
+        } else {
+            mailBtn.classList.add('unread');
+            mailBtn.classList.remove('read');
+            mailBtnImg.src = 'images/Home/mailUNREAD.png';
+        }
+
+        // Open popup on mail button click + mark as read immediately
+        mailBtn.addEventListener('click', () => {
+            mailPopup.style.display = 'flex';
+            // Trigger reflow, then add visible class for animation
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    mailPopup.classList.add('visible');
+                });
+            });
+
+            // Mark as read on click
+            sessionStorage.setItem('mailRead', 'true');
+            mailBtn.classList.remove('unread');
+            mailBtn.classList.add('read');
+            mailBtnImg.src = 'images/Home/mailREAD.png';
+        });
+
+        // Close popup helper
+        const closeMail = () => {
+            mailPopup.classList.remove('visible');
+            // Wait for fade out animation, then hide
+            setTimeout(() => {
+                mailPopup.style.display = 'none';
+            }, 400);
+        };
+
+        // Close button click
+        closeMailBtn.addEventListener('click', closeMail);
+
+        // Close on backdrop click
+        mailPopup.addEventListener('click', (e) => {
+            if (e.target === mailPopup) closeMail();
+        });
     },
 
     // Mobile Bird Y-Axis Spin Physics

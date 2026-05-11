@@ -2458,3 +2458,239 @@ body.loading .page-transition {
         max-width: 80px;
     }
 }
+
+/* --- MAIL BUTTON (Fixed to Screen) --- */
+
+.mail-btn {
+    position: fixed;
+    top: 1.5vw;
+    right: 3vw;
+    width: 6vw;
+    height: 6vw;
+    z-index: 3000;
+    cursor: pointer;
+    transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.mail-btn:hover {
+    transform: scale(1.12);
+    filter: brightness(1.2);
+}
+
+.mail-btn-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    -webkit-user-drag: none;
+}
+
+/* Wiggle animation for unread state — quick shake then long pause */
+.mail-btn.unread {
+    animation: mail-wiggle 6s ease-in-out infinite;
+}
+
+.mail-btn.unread:hover {
+    animation: none;
+    transform: scale(1.12);
+}
+
+@keyframes mail-wiggle {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    2% {
+        transform: rotate(-10deg);
+    }
+
+    4% {
+        transform: rotate(8deg);
+    }
+
+    6% {
+        transform: rotate(-6deg);
+    }
+
+    8% {
+        transform: rotate(4deg);
+    }
+
+    10% {
+        transform: rotate(-2deg);
+    }
+
+    12% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+/* Read state — no wiggle, slightly dimmer */
+.mail-btn.read {
+    animation: none;
+    filter: brightness(0.8);
+}
+
+.mail-btn.read:hover {
+    filter: brightness(1.0);
+}
+
+/* --- MAIL POPUP MODAL --- */
+
+.mail-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 3500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mail-popup.visible {
+    opacity: 1;
+}
+
+.mail-popup-content {
+    position: relative;
+    width: 90%;
+    max-width: 480px;
+    max-height: 80vh;
+    background: linear-gradient(145deg, #5C3A1E, #3E2712);
+    border: 3px solid #D2691E;
+    border-radius: 16px;
+    box-shadow:
+        0 12px 50px rgba(0, 0, 0, 0.6),
+        inset 0 1px 8px rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mail-popup.visible .mail-popup-content {
+    transform: scale(1);
+}
+
+.close-mail {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    color: #FFF8DC;
+    font-size: 34px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 3501;
+    line-height: 1;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.close-mail:hover {
+    color: #ff4444;
+    transform: scale(1.2);
+}
+
+.mail-popup-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 28px 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar for mail popup */
+.mail-popup-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mail-popup-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.mail-popup-scroll::-webkit-scrollbar-thumb {
+    background: #D2691E;
+    border-radius: 3px;
+}
+
+.mail-popup-title {
+    font-family: 'HeaderFont', cursive;
+    color: #FFD700;
+    font-size: 2rem;
+    margin: 0 0 18px 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.mail-popup-text {
+    font-family: 'BodyFont', sans-serif;
+    color: #FFF8DC;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin: 0 0 14px 0;
+}
+
+.mail-popup-footer {
+    padding: 16px 28px 22px;
+    text-align: center;
+    border-top: 1px solid rgba(210, 105, 30, 0.3);
+    flex-shrink: 0;
+}
+
+.mail-subscribe-btn {
+    display: inline-block;
+    padding: 14px 36px;
+    background: linear-gradient(145deg, #228B22, #006400);
+    color: white;
+    font-family: 'HeaderFont', cursive;
+    font-size: 1.2rem;
+    text-decoration: none;
+    border-radius: 10px;
+    border: 3px solid #32CD32;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+}
+
+.mail-subscribe-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    filter: brightness(1.1);
+}
+
+/* Mobile adjustments for mail button */
+@media only screen and (max-width: 768px) {
+    .mail-btn {
+        top: auto;
+        bottom: 3vw;
+        right: 3vw;
+        width: 12vw;
+        height: 12vw;
+        z-index: 10000;
+    }
+
+    .mail-popup {
+        z-index: 10001;
+    }
+
+    .mail-popup-content {
+        width: 92%;
+        max-height: 85vh;
+    }
+
+    .mail-popup-title {
+        font-size: 1.6rem;
+    }
+
+    .mail-popup-text {
+        font-size: 0.95rem;
+    }
+}
