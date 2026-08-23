@@ -2,9 +2,8 @@
 // SPA ARCHITECTURE & GLOBAL INITIALIZATION
 // ==========================================
 
-const GlobalAudioPlayer = {
-    audioUnlocked: false,
-    playlist: [
+const ProjectPlaylists = {
+    birdMusic: [
         "audioFiles/BIRD MUSIC MP3s/01 Boxed Out.mp3",
         "audioFiles/BIRD MUSIC MP3s/03 Spy Balloon.mp3",
         "audioFiles/BIRD MUSIC MP3s/04 Tidal.mp3",
@@ -16,6 +15,17 @@ const GlobalAudioPlayer = {
         "audioFiles/BIRD MUSIC MP3s/12 Horse in a Field.mp3",
         "audioFiles/BIRD MUSIC MP3s/14 Outdoor Shower.mp3"
     ],
+    sf: [
+        "audioFiles/SF MP3s/01 JTube.mp3",
+        "audioFiles/SF MP3s/02 Nuu Song.mp3",
+        "audioFiles/SF MP3s/03 Endless Nights.mp3"
+    ]
+};
+
+const GlobalAudioPlayer = {
+    audioUnlocked: false,
+    currentProject: 'sf',
+    playlist: ProjectPlaylists.sf,
     currentIndex: 0,
     defaultVolume: 0.55,
     isPlaying: false,
@@ -62,6 +72,22 @@ const GlobalAudioPlayer = {
         document.addEventListener('click', unlock);
         document.addEventListener('touchstart', unlock);
         document.addEventListener('keydown', unlock);
+    },
+
+    setProject(projectKey) {
+        if (ProjectPlaylists[projectKey] && this.currentProject !== projectKey) {
+            this.currentProject = projectKey;
+            this.playlist = ProjectPlaylists[projectKey];
+            this.currentIndex = 0;
+            
+            // Stop playback and reset states
+            if (this.isPlaying) {
+                this.stop();
+            }
+            
+            this.audio.src = this.playlist[this.currentIndex];
+            this.updateUI();
+        }
     },
 
     // --- SFX SYSTEM ---
@@ -2254,8 +2280,56 @@ const PageManager = {
         if (d && pc && pi) {
             const startStopBtn = document.querySelector('.start-stop-btn');
             const skipBtn = document.querySelector('.skip-btn');
+            const projectSwitchBtn = document.getElementById('imageSwapButton');
+            const projectLink = document.getElementById('projectLink');
+            const projectImage = document.getElementById('projectImage');
+
             if (startStopBtn) startStopBtn.onclick = (e) => { e.preventDefault(); GlobalAudioPlayer.togglePlay(); };
             if (skipBtn) skipBtn.onclick = (e) => { e.preventDefault(); GlobalAudioPlayer.playNext(true); };
+
+            if (projectSwitchBtn && projectLink && projectImage) {
+                let isSwitching = false;
+                projectSwitchBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (isSwitching) return;
+                    isSwitching = true;
+
+                    projectImage.classList.add('switch-shrink-out');
+
+                    setTimeout(() => {
+                        projectImage.style.transition = 'none';
+
+                        let newSrc, newHref, newProject;
+                        if (GlobalAudioPlayer.currentProject === 'birdMusic') {
+                            newProject = 'sf';
+                            newSrc = 'images/Listen/SF.jpg';
+                            newHref = 'https://open.spotify.com/album/1FtW316hvAVyzncN69tvUO?trackId=2Iw9ciQvz24Alk3YAovArC';
+                        } else {
+                            newProject = 'birdMusic';
+                            newSrc = 'images/Listen/birdMusic.JPG';
+                            newHref = 'https://distrokid.com/hyperfollow/asanabenche/bird-music';
+                        }
+
+                        const tempImg = new Image();
+                        tempImg.onload = () => {
+                            GlobalAudioPlayer.setProject(newProject);
+                            projectImage.src = newSrc;
+                            projectLink.href = newHref;
+
+                            projectImage.classList.remove('switch-shrink-out');
+                            projectImage.classList.add('switch-enlarge-in-start');
+                            
+                            void projectImage.offsetWidth; // Force reflow to apply position instantly
+                            
+                            projectImage.style.transition = '';
+                            projectImage.classList.remove('switch-enlarge-in-start');
+                            
+                            setTimeout(() => { isSwitching = false; }, 800);
+                        };
+                        tempImg.src = newSrc;
+                    }, 800);
+                };
+            }
 
             d.style.cursor = 'pointer'; d.style.pointerEvents = 'auto';
             d.onclick = () => {
