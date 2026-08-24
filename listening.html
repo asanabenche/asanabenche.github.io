@@ -54,11 +54,34 @@
 
         <!-- Project Switch Container -->
         <div class="overlay-simple project-switch-container">
-            <a href="https://open.spotify.com/album/1FtW316hvAVyzncN69tvUO?trackId=2Iw9ciQvz24Alk3YAovArC" class="bird-music-link" id="projectLink"
-                target="_blank">
+            <div class="bird-music-link" id="projectLink">
                 <img src="images/Listen/SF.jpg" alt="Project Cover" class="overlay-img" id="projectImage">
-            </a>
-            <img src="images/Listen/swapButton.png" alt="Swap Project" id="imageSwapButton" class="image-swap-button">
+            </div>
+            <img src="images/Listen/swapButton.PNG" alt="Swap Project" id="imageSwapButton" class="image-swap-button">
+        </div>
+
+        <!-- Streaming Modal -->
+        <div class="streaming-modal-overlay" id="streamingModal">
+            <div class="streaming-modal">
+                <div class="streaming-modal-content">
+                    <div class="streaming-modal-cover-wrap">
+                        <img src="" alt="Project Cover" class="streaming-modal-cover" id="streamingModalImage">
+                        <span class="streaming-modal-close" id="streamingModalClose">✕</span>
+                    </div>
+                    <div class="streaming-modal-tracklist" id="streamingModalTracklist"></div>
+                </div>
+                <div class="streaming-modal-buttons">
+                    <a href="#" class="streaming-btn" id="streamBtnSpotify" target="_blank" rel="noopener noreferrer">
+                        <img src="images/Listen/projectSpot.png" alt="Spotify" class="streaming-btn-img">
+                    </a>
+                    <a href="#" class="streaming-btn" id="streamBtnApple" target="_blank" rel="noopener noreferrer">
+                        <img src="images/Listen/projectApp.png" alt="Apple Music" class="streaming-btn-img">
+                    </a>
+                    <a href="#" class="streaming-btn" id="streamBtnTidal" target="_blank" rel="noopener noreferrer">
+                        <img src="images/Listen/projectTidal.png" alt="Tidal" class="streaming-btn-img">
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Wall Art -->

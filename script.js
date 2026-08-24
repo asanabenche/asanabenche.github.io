@@ -79,12 +79,12 @@ const GlobalAudioPlayer = {
             this.currentProject = projectKey;
             this.playlist = ProjectPlaylists[projectKey];
             this.currentIndex = 0;
-            
+
             // Stop playback and reset states
             if (this.isPlaying) {
                 this.stop();
             }
-            
+
             this.audio.src = this.playlist[this.currentIndex];
             this.updateUI();
         }
@@ -2283,9 +2283,94 @@ const PageManager = {
             const projectSwitchBtn = document.getElementById('imageSwapButton');
             const projectLink = document.getElementById('projectLink');
             const projectImage = document.getElementById('projectImage');
+            const streamingModal = document.getElementById('streamingModal');
+            const streamingModalImage = document.getElementById('streamingModalImage');
 
             if (startStopBtn) startStopBtn.onclick = (e) => { e.preventDefault(); GlobalAudioPlayer.togglePlay(); };
             if (skipBtn) skipBtn.onclick = (e) => { e.preventDefault(); GlobalAudioPlayer.playNext(true); };
+
+            // Per-project streaming links (fill in your URLs)
+            const projectStreamingLinks = {
+                sf: {
+                    spotify: 'https://open.spotify.com/album/1FtW316hvAVyzncN69tvUO?si=9hP50qJqTIiIozkdThbJKA',
+                    apple: 'https://music.apple.com/us/album/suit-friday-single/6778291228',
+                    tidal: 'https://tidal.com/album/531872147/u',
+                    image: 'images/Listen/SF.jpg',
+                    tracklist: [
+                        'J-Tube',
+                        'Nuu Song',
+                        'Endless Nights'
+                    ]
+                },
+                birdMusic: {
+                    spotify: 'https://open.spotify.com/album/62JxR9Q8Dbdx2DVZAG6mma',
+                    apple: 'https://music.apple.com/us/album/bird-music/1822664856',
+                    tidal: '#',
+                    image: 'images/Listen/birdMusic.JPG',
+                    tracklist: [
+                        'Boxed Out',
+                        'ACT I',
+                        'Spy Balloon',
+                        'Tidal',
+                        'Right On Time',
+                        'Asana',
+                        'ACT II',
+                        'Benche',
+                        'Agravada Mermelada',
+                        'ACT III',
+                        'Toe Funkus',
+                        'Horse in a Field',
+                        'ACT IV',
+                        'Outdoor Shower'
+                    ]
+                }
+            };
+
+            function updateStreamingButtons() {
+                const links = projectStreamingLinks[GlobalAudioPlayer.currentProject] || projectStreamingLinks.sf;
+                document.getElementById('streamBtnSpotify').href = links.spotify;
+                document.getElementById('streamBtnApple').href = links.apple;
+                document.getElementById('streamBtnTidal').href = links.tidal;
+
+                // Build tracklist
+                const tracklistEl = document.getElementById('streamingModalTracklist');
+                if (tracklistEl && links.tracklist) {
+                    let html = '<span class="tracklist-title">Tracklist:</span><ol class="tracklist-ol">';
+                    links.tracklist.forEach(track => {
+                        html += `<li>${track}</li>`;
+                    });
+                    html += '</ol>';
+                    tracklistEl.innerHTML = html;
+                }
+            }
+
+            // Open modal on bird-music-link click
+            if (projectLink && streamingModal) {
+                projectLink.style.cursor = 'pointer';
+                projectLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const links = projectStreamingLinks[GlobalAudioPlayer.currentProject] || projectStreamingLinks.sf;
+                    streamingModalImage.src = links.image;
+                    updateStreamingButtons();
+                    streamingModal.classList.add('active');
+                });
+
+                // Close modal on overlay click (not on modal content)
+                streamingModal.addEventListener('click', (e) => {
+                    if (e.target === streamingModal) {
+                        streamingModal.classList.remove('active');
+                    }
+                });
+
+                // Close modal on X button click
+                const closeBtn = document.getElementById('streamingModalClose');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        streamingModal.classList.remove('active');
+                    });
+                }
+            }
 
             if (projectSwitchBtn && projectLink && projectImage) {
                 let isSwitching = false;
@@ -2299,31 +2384,28 @@ const PageManager = {
                     setTimeout(() => {
                         projectImage.style.transition = 'none';
 
-                        let newSrc, newHref, newProject;
+                        let newSrc, newProject;
                         if (GlobalAudioPlayer.currentProject === 'birdMusic') {
                             newProject = 'sf';
                             newSrc = 'images/Listen/SF.jpg';
-                            newHref = 'https://open.spotify.com/album/1FtW316hvAVyzncN69tvUO?trackId=2Iw9ciQvz24Alk3YAovArC';
                         } else {
                             newProject = 'birdMusic';
                             newSrc = 'images/Listen/birdMusic.JPG';
-                            newHref = 'https://distrokid.com/hyperfollow/asanabenche/bird-music';
                         }
 
                         const tempImg = new Image();
                         tempImg.onload = () => {
                             GlobalAudioPlayer.setProject(newProject);
                             projectImage.src = newSrc;
-                            projectLink.href = newHref;
 
                             projectImage.classList.remove('switch-shrink-out');
                             projectImage.classList.add('switch-enlarge-in-start');
-                            
+
                             void projectImage.offsetWidth; // Force reflow to apply position instantly
-                            
+
                             projectImage.style.transition = '';
                             projectImage.classList.remove('switch-enlarge-in-start');
-                            
+
                             setTimeout(() => { isSwitching = false; }, 800);
                         };
                         tempImg.src = newSrc;

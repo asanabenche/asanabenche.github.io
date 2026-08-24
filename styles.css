@@ -1204,10 +1204,25 @@ body.loading .page-transition {
     position: absolute;
 }
 
+/* Override .overlay-simple:hover so the container hover doesn't
+   apply brightness to all children (including the swap button). */
+.project-switch-container:hover {
+    filter: none;
+}
+
 .bird-music-link {
-    width: 100%;
+    width: 90%;
     position: relative;
+    right: -4%;
     display: block;
+    border: 2px solid black;
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+/* Brightness and scale only on the bird-music-link's own hover */
+.bird-music-link:hover {
+    filter: brightness(1.2);
+    transform: scale(1.04);
 }
 
 #projectImage {
@@ -1216,30 +1231,32 @@ body.loading .page-transition {
 
 .image-swap-button {
     position: absolute;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%) translateX(0) scale(1);
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(0) scale(1);
     z-index: -1;
     width: 40px;
     height: auto;
     cursor: pointer;
     opacity: 0;
     visibility: hidden;
-    /* When leaving hover, delay sliding, opacity, and visibility by 1.5s */
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1.5s, filter 0.3s ease 1.5s, opacity 0.3s ease 1.5s, visibility 0s ease 1.8s;
+    /* When leaving hover, stay visible for 0.5s then retreat over 0.4s */
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s, filter 0.4s ease 0.5s, opacity 0.4s ease 0.5s, visibility 0s ease 0.9s;
 }
 
+/* Reveal swap button upward out the top of bird-music-link on container hover */
 .project-switch-container:hover .image-swap-button {
     opacity: 1;
     visibility: visible;
-    transform: translateY(-50%) translateX(60px) scale(1);
+    transform: translateX(-50%) translateY(-150%) scale(1);
     /* When entering hover state, transition immediately (0s delay) */
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, filter 0.3s ease 0s, opacity 0.3s ease 0s, visibility 0s ease 0s;
 }
 
+/* Swap button's own hover: independent brightness and scale */
 .project-switch-container:hover .image-swap-button:hover {
     filter: brightness(1.2);
-    transform: translateY(-50%) translateX(60px) scale(1.1);
+    transform: translateX(-50%) translateY(-150%) scale(1.1);
     transition: transform 0.2s ease, filter 0.2s ease;
 }
 
@@ -1251,6 +1268,179 @@ body.loading .page-transition {
 .switch-enlarge-in-start {
     transform: translateY(290px) scale(0) !important;
     opacity: 0 !important;
+}
+
+/* --- Streaming Modal --- */
+.streaming-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: background-color 0.4s ease, opacity 0.4s ease, visibility 0s ease 0.4s;
+    cursor: default;
+}
+
+.streaming-modal-overlay.active {
+    background-color: rgba(0, 0, 0, 0.8);
+    opacity: 1;
+    visibility: visible;
+    transition: background-color 0.4s ease, opacity 0.4s ease, visibility 0s ease 0s;
+}
+
+.streaming-modal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    cursor: default;
+    position: relative;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.streaming-modal-overlay.active .streaming-modal {
+    transform: scale(1) translateY(0);
+}
+
+.streaming-modal-content {
+    position: relative;
+}
+
+.streaming-modal-tracklist {
+    position: absolute;
+    left: calc(100% + 28px);
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ffffff;
+    font-family: 'BodyFont', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: nowrap;
+}
+
+.tracklist-title {
+    text-decoration: underline;
+    font-weight: 700;
+    font-size: 15px;
+    display: block;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+}
+
+.tracklist-ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: track;
+}
+
+.tracklist-ol li {
+    counter-increment: track;
+}
+
+.tracklist-ol li::before {
+    content: counter(track) ". ";
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+.streaming-modal-cover-wrap {
+    position: relative;
+}
+
+.streaming-modal-cover {
+    width: 340px;
+    height: auto;
+    border: 5px solid black;
+    display: block;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.streaming-modal-close {
+    position: absolute;
+    top: -28px;
+    right: -28px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+    font-family: 'BodyFont', sans-serif;
+    font-size: 14px;
+    line-height: 26px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    z-index: 1;
+}
+
+.streaming-modal-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    transform: scale(1.15);
+}
+
+.streaming-modal-buttons {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.streaming-btn {
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: transform 0.25s ease, filter 0.25s ease, box-shadow 0.25s ease;
+    line-height: 0;
+}
+
+.streaming-btn-img {
+    width: 60px;
+    height: auto;
+    display: block;
+}
+
+.streaming-modal-overlay.active .streaming-btn {
+    opacity: 1;
+    transform: translateY(0);
+    transition: transform 0.25s ease, filter 0.25s ease, box-shadow 0.25s ease, opacity 0.4s ease;
+}
+
+/* Staggered fade-in */
+.streaming-modal-overlay.active .streaming-btn:nth-child(1) {
+    transition-delay: 0.15s;
+}
+
+.streaming-modal-overlay.active .streaming-btn:nth-child(2) {
+    transition-delay: 0.22s;
+}
+
+.streaming-modal-overlay.active .streaming-btn:nth-child(3) {
+    transition-delay: 0.29s;
+}
+
+.streaming-modal-overlay.active .streaming-btn:hover {
+    transform: translateY(-2px) scale(1.08);
+    filter: brightness(1.25);
+    transition-delay: 0s !important;
+}
+
+.streaming-modal-overlay.active .streaming-btn:active {
+    transform: translateY(0) scale(0.95);
+    transition-duration: 0.08s;
+    transition-delay: 0s !important;
 }
 
 /* Music Animations */
