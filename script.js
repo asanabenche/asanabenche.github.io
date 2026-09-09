@@ -920,13 +920,8 @@ const PageManager = {
         // (Wait, initHome has specialized shake for tree with sound. Logic below is generic from original lines 281)
         const shakeElements = document.querySelectorAll('.shake-on-click');
         shakeElements.forEach(element => {
-            // Check if it is the apple tree, if so, skip generic listener if it interferes?
-            // The original code applied BOTH generic (lines 281) and specific (initHome) to apple tree?
-            // Actually, in original code:
-            // Line 71: <div class="shake-on-click apple-tree">
-            // Lines 281-299: Adds generic class toggle 'shaking'.
-            // Lines 938: Adds 'click' -> appleClicks++.
-            // They coexist.
+            // Skip apple tree — it has its own handler in initHome that manages shaking + click counting
+            if (element.classList.contains('apple-tree')) return;
 
             element.addEventListener('click', () => {
                 element.classList.remove('shaking');
@@ -1073,17 +1068,25 @@ const PageManager = {
             apple.style.display = 'none'; // Initially hidden until dropped
 
             let appleClicks = 0;
+            let isShaking = false;
             // Ensure Apple Tree has the correct styles/handlers
             apple.style.zIndex = '1'; // Start behind
 
             appleTree.addEventListener('click', () => {
-                appleClicks++;
-                // Sound for tree shake? Original: Line 400ish of *previous* version had it, 
-                // but the "Reset" version (lines 931+) did NOT have explicit tree shake sound in the click handler.
-                // The User asked to RESTORE things "What you got right last time".
-                // Last time I added tree shake sound. I will add it back.
+                // Block clicks while shake animation is playing
+                if (isShaking) return;
+                isShaking = true;
 
-                // Generic shake is handled by initCommon .shake-on-click
+                // Trigger shake animation
+                appleTree.classList.remove('shaking');
+                void appleTree.offsetWidth;
+                appleTree.classList.add('shaking');
+                this.registerTimeout(() => {
+                    appleTree.classList.remove('shaking');
+                    isShaking = false;
+                }, 1000);
+
+                appleClicks++;
 
                 // Sound
                 this.playSfx('audioFiles/homeAudio/treeShake.wav');
@@ -2374,6 +2377,47 @@ const PageManager = {
 
             if (projectSwitchBtn && projectLink && projectImage) {
                 let isSwitching = false;
+                const switchContainer = document.querySelector('.project-switch-container');
+                let hoverBufferTimeout = null;
+
+                // --- JS-controlled hover reveal/hide for swap button ---
+                // When the fade-out opacity transition finishes, remove fading class
+                // so the base state applies (transform snaps back while invisible)
+                projectSwitchBtn.addEventListener('transitionend', (e) => {
+                    if (e.propertyName === 'opacity' && projectSwitchBtn.classList.contains('swap-btn-fading')) {
+                        projectSwitchBtn.classList.remove('swap-btn-fading');
+                    }
+                });
+
+                if (switchContainer) {
+                    switchContainer.addEventListener('mouseenter', () => {
+                        // Block reveal while swapping animation is in progress
+                        if (isSwitching) return;
+
+                        // Cancel any pending fade-out buffer
+                        if (hoverBufferTimeout) {
+                            clearTimeout(hoverBufferTimeout);
+                            hoverBufferTimeout = null;
+                        }
+
+                        // If currently fading, stop the fade and re-reveal
+                        projectSwitchBtn.classList.remove('swap-btn-fading');
+                        projectSwitchBtn.classList.add('swap-btn-visible');
+                    });
+
+                    switchContainer.addEventListener('mouseleave', () => {
+                        // Buffer: wait 0.5s before starting fade-out
+                        // This gives the user time to move from the album art to the swap button
+                        if (hoverBufferTimeout) clearTimeout(hoverBufferTimeout);
+                        hoverBufferTimeout = setTimeout(() => {
+                            hoverBufferTimeout = null;
+                            // Transition from visible → fading (keeps position, fades opacity)
+                            projectSwitchBtn.classList.remove('swap-btn-visible');
+                            projectSwitchBtn.classList.add('swap-btn-fading');
+                        }, 500);
+                    });
+                }
+
                 projectSwitchBtn.onclick = (e) => {
                     e.preventDefault();
                     if (isSwitching) return;
@@ -2475,7 +2519,7 @@ const PageManager = {
         const btns = document.querySelectorAll(".overlay-link[data-instrument]");
 
         const content = {
-            "Bass": `<div class="single-column-layout"><div><p class="teacher-name">Ninaad Raman</p><img src="images/Lessons/Ninaad.png" style="width:150px;height:150px;"><ul style="text-align: left;"><li>Performing Bassist for Asanabenche</li><li>Proficient in Jazz and Funk styles</li><li>Experience teaching children and adults</li><li>Wholistic approach to music education</li></ul></div></div><a href="contact.html"><img src="images/Lessons/inquire_base.png" style="width:100px;height:auto;" onmouseover="this.src='images/Lessons/inquire_hover.png'" onmouseout="this.src='images/Lessons/inquire_base.png'"></a>`,
+            "Bass": `<div class="single-column-layout"><div><p class="teacher-name">Ninaad Raman</p><img src="images/Lessons/Ninaad.png" style="width:150px;height:150px;"><ul style="text-align: left;"><li>Performing Bassist for Asanabenche</li><li>Proficient in Jazz, Funk, and R&B styles</li><li>Proficient in Latin and African rhythms</li><li>Experience teaching children and adults</li><li>Wholistic approach to music education</li></ul></div></div><a href="contact.html"><img src="images/Lessons/inquire_base.png" style="width:100px;height:auto;" onmouseover="this.src='images/Lessons/inquire_hover.png'" onmouseout="this.src='images/Lessons/inquire_base.png'"></a>`,
             "Drums": `<div class="single-column-layout"><p class="teacher-name">Jacob Winthrop</p><img src="images/Lessons/Jacob.png" style="width:150px;height:150px;"><ul style="text-align: left;"><li>fill in</li><li>fill in</li><li>fill in</li><li>fill in</li></ul></div><a href="contact.html"><img src="images/Lessons/inquire_base.png" style="width:100px;height:auto;" onmouseover="this.src='images/Lessons/inquire_hover.png'" onmouseout="this.src='images/Lessons/inquire_base.png'"></a>`,
             "Guitar": `<div class="single-column-layout"><p class="teacher-name">Jacob Winthrop</p><img src="images/Lessons/Jacob.png" style="width:150px;height:150px;"><ul style="text-align: left;"><li>fill in</li><li>fill in</li><li>fill in</li><li>fill in</li></ul></div><a href="contact.html"><img src="images/Lessons/inquire_base.png" style="width:100px;height:auto;" onmouseover="this.src='images/Lessons/inquire_hover.png'" onmouseout="this.src='images/Lessons/inquire_base.png'"></a>`,
             "Voice": `<div class="single-column-layout"><p class="teacher-name">Ninaad Raman</p><img src="images/Lessons/Ninaad.png" style="width:150px;height:150px;"><ul style="text-align: left;"><li>20+ years of vocal performance experience</li><li>Vocal Principle at Berklee College of Music</li><li>10 years in Cantabile Youth Singers as a vocalist and conductor</li><li>Group and Private direction experience for children and adults</li><li>Wholistic approach to music education</li></ul></div><a href="contact.html"><img src="images/Lessons/inquire_base.png" style="width:100px;height:auto;" onmouseover="this.src='images/Lessons/inquire_hover.png'" onmouseout="this.src='images/Lessons/inquire_base.png'"></a>`,

@@ -29,6 +29,13 @@ body {
     /* Standard syntax */
     background-color: black;
     /* Critical for loading fallback */
+    /* Hide scrollbar on Safari/Chrome to prevent gutter gap */
+    scrollbar-width: none; /* Firefox */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
 }
 
 /* Disable image dragging */
@@ -193,6 +200,9 @@ body.loading .page-transition {
     /* Default fallback */
     min-width: 100vw;
     min-height: 100vh;
+    /* Modern viewport units that exclude scrollbar gutter (Safari fix) */
+    min-width: 100dvw;
+    min-height: 100dvh;
 }
 
 .mobile-bg-img {
@@ -1240,21 +1250,29 @@ body.loading .page-transition {
     cursor: pointer;
     opacity: 0;
     visibility: hidden;
-    /* When leaving hover, stay visible for 0.5s then retreat over 0.4s */
-    transition: transform 0.4s linear 0.5s, filter 0.4s ease 0.5s, opacity 0s ease 0.9s, visibility 0s ease 0.9s;
+    /* Base/hidden state — no transitions needed, JS controls state changes */
+    transition: none;
 }
 
-/* Reveal swap button upward out the top of bird-music-link on container hover */
-.project-switch-container:hover .image-swap-button {
+/* Revealed state (controlled via JS) */
+.image-swap-button.swap-btn-visible {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(-150%) scale(1);
-    /* When entering hover state, transition immediately (0s delay) */
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, filter 0.3s ease 0s, opacity 0.3s ease 0s, visibility 0s ease 0s;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.3s ease, opacity 0.3s ease, visibility 0s ease;
 }
 
-/* Swap button's own hover: independent brightness and scale */
-.project-switch-container:hover .image-swap-button:hover {
+/* Fading-out state: keeps position at -150%, only fades opacity */
+.image-swap-button.swap-btn-fading {
+    opacity: 0;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-150%) scale(1);
+    transition: opacity 0.4s ease, visibility 0s ease 0.4s;
+}
+
+/* Swap button hover: works while visible or fading */
+.image-swap-button.swap-btn-visible:hover,
+.image-swap-button.swap-btn-fading:hover {
     filter: brightness(1.2);
     transform: translateX(-50%) translateY(-150%) scale(1.1);
     transition: transform 0.2s ease, filter 0.2s ease;
@@ -2805,7 +2823,7 @@ body.loading .page-transition {
 .mail-popup-content {
     position: relative;
     width: 90%;
-    max-width: 480px;
+    max-width: 700px;
     max-height: 80vh;
     background: linear-gradient(145deg, #5C3A1E, #3E2712);
     border: 3px solid #D2691E;
@@ -2845,6 +2863,7 @@ body.loading .page-transition {
 .mail-popup-scroll {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 30px 28px 20px;
     -webkit-overflow-scrolling: touch;
 }
@@ -2876,7 +2895,8 @@ body.loading .page-transition {
 .mail-popup-text {
     font-family: 'BodyFont', sans-serif;
     color: #FFF8DC;
-    font-size: 1.05rem;
+    font-size: 1.5rem;
+    font-weight: bold;
     line-height: 1.6;
     margin: 0 0 14px 0;
 }
@@ -2893,8 +2913,9 @@ body.loading .page-transition {
     padding: 14px 36px;
     background: linear-gradient(145deg, #228B22, #006400);
     color: white;
-    font-family: 'HeaderFont', cursive;
+    font-family: 'BodyFont', sans-serif;
     font-size: 1.2rem;
+    font-weight: bold;
     text-decoration: none;
     border-radius: 10px;
     border: 3px solid #32CD32;
