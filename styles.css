@@ -30,12 +30,14 @@ body {
     background-color: black;
     /* Critical for loading fallback */
     /* Hide scrollbar on Safari/Chrome to prevent gutter gap */
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
 }
 
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
+    display: none;
+    /* Chrome, Safari, Edge */
 }
 
 /* Disable image dragging */
@@ -2314,6 +2316,11 @@ body.loading .page-transition {
     display: none;
 }
 
+/* Default: Hide mobile-only contact button on desktop */
+.mobile-contact-fixed {
+    display: none;
+}
+
 /* Mobile Breakpoint */
 @media only screen and (max-width: 768px) {
 
@@ -2354,7 +2361,7 @@ body.loading .page-transition {
         height: 90%;
         left: 50%;
         transform: translateX(-50%);
-        width: 15%;
+        width: 10%;
         object-fit: fill;
         z-index: 1;
     }
@@ -2362,10 +2369,10 @@ body.loading .page-transition {
     .mobile-bird {
         position: absolute;
         top: 3%;
-        left: 50%;
+        left: 49.5%;
         transform: translateX(-50%) perspective(800px) rotateY(0deg);
         transform-style: preserve-3d;
-        width: 90%;
+        width: 90.2%;
         height: auto;
         z-index: 9999;
         cursor: pointer;
@@ -2384,7 +2391,7 @@ body.loading .page-transition {
         transform: none;
         width: 100%;
         align-items: center;
-        margin-top: 60%;
+        margin-top: 75%;
         /* Position lower to make room for bird image, uses % for consistent scaling */
         padding-bottom: 150px;
         /* Extra space at bottom */
@@ -2520,41 +2527,38 @@ body.loading .page-transition {
     }
 
     .mobile-btn-img {
-        width: 60%;
-        /* Increased from 30% */
+        width: 40%;
         height: auto;
         display: block;
         margin: 0 auto;
         /* Center image */
     }
 
-    .mobile-contact-btn {
-        font-size: 3em;
-        color: rgb(255, 128, 17);
-        text-decoration: none;
-        padding: 10px 20px;
-        /* Reduced padding */
-        width: fit-content;
-        align-self: center;
-        border: 2px solid rgba(255, 255, 255, 0.5);
-        border-radius: 10px;
-        background-color: #3e2723;
-        /* Dark Brown, opaque */
-        margin-top: 20px;
-        /* Separation from images */
+    /* Fixed Contact Button (top-left, mirrors mail button on top-right) */
+    .mobile-contact-fixed {
+        position: absolute;
+        top: 54vw;
+        right: 16vw;
+        width: 40vw;
+        height: 40vw;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.25s ease, filter 0.25s ease;
     }
 
-    /* Mobile GoFundMe Banner */
-    .mobile-banner-gfm {
-        margin: 8px 0;
+    .mobile-contact-fixed-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        -webkit-user-drag: none;
     }
 
-    .mobile-banner-gfm .mobile-btn-img {
-        width: 50%;
-    }
-
-    .mobile-banner-gfm:active {
-        transform: scale(1.03);
+    .mobile-contact-fixed:active {
+        transform: scale(0.92);
         filter: brightness(1.2);
     }
 
@@ -2562,10 +2566,6 @@ body.loading .page-transition {
         transform: scale(0.95);
         background-color: transparent;
         /* Ensure no background on click */
-    }
-
-    .mobile-contact-btn:active {
-        background-color: rgba(255, 255, 255, 0.2);
     }
 
     /* --- MOBILE MODAL LAYOUT --- */
@@ -2691,8 +2691,7 @@ body.loading .page-transition {
 
     .contact-info-box {
         position: absolute;
-        top: 90%;
-        /* Moved up to avoid overflowing bottom */
+        top: 40%;
         left: 50%;
         transform: translate(-50%, -50%);
         width: 85%;
@@ -2934,7 +2933,8 @@ body.loading .page-transition {
     .mail-btn {
         top: 30vw;
         bottom: auto;
-        right: 3vw;
+        right: auto;
+        left: 3vw;
         width: 17vw;
         height: 17vw;
         z-index: 10000;
