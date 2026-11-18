@@ -1988,6 +1988,7 @@ body.loading .page-transition {
     justify-content: center;
     align-items: flex-start;
     margin-top: 20px;
+    font-size: calc(1em + 1.5pt);
     gap: 40px;
 }
 
@@ -1996,7 +1997,7 @@ body.loading .page-transition {
     flex-direction: column;
     align-items: center;
     margin-top: 20px;
-    font-size: 0.9em;
+    font-size: calc(0.9em + 1.5pt);
     min-width: 300px;
     max-width: 350px;
 }
