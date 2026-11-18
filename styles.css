@@ -1967,7 +1967,12 @@ body.loading .page-transition {
     justify-items: center;
     align-items: start;
     margin-top: 20px;
-    gap: 10px;
+    gap: 30px;
+}
+
+.three-column-layout>div {
+    max-width: 260px;
+    text-align: center;
 }
 
 .four-column-layout {
@@ -2002,6 +2007,30 @@ body.loading .page-transition {
     margin-top: 0;
     margin-bottom: 10px;
     font-family: 'HeaderFont', serif;
+}
+
+.inquire-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffde59;
+    color: #000000;
+    font-family: 'HeaderFont', serif;
+    font-size: 1.25rem;
+    line-height: 1;
+    letter-spacing: 1px;
+    text-decoration: none;
+    padding: 12px 24px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.inquire-btn:hover {
+    color: #ffffff;
+    transform: scale(1.06);
 }
 
 
@@ -2597,6 +2626,7 @@ body.loading .page-transition {
     .three-column-layout>div,
     .four-column-layout>div {
         width: 100% !important;
+        max-width: 100% !important;
         text-align: center !important;
     }
 
